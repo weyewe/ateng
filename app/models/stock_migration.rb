@@ -7,6 +7,7 @@ class StockMigration < ActiveRecord::Base
   belongs_to :item
   validates_presence_of :quantity , :item_id
   validate :quantity_not_zero
+  validate :price_not_less_than_zero 
   validate :only_one_stock_migration_per_item
   
   def self.active_objects
@@ -19,15 +20,19 @@ class StockMigration < ActiveRecord::Base
     end
   end
   
+  def price_not_less_than_zero
+    zero_value = BigDecimal('0')
+    if average_cost <= zero_value 
+      errors.add(:average_cost , "Harga tidak boleh kurang dari 0" ) 
+    end
+  end
+  
   def only_one_stock_migration_per_item
     if self.persisted? and   
         StockMigration.where(:item_id => self.item_id).count != 1 
       errors.add(:item_id , "Tidak boleh ada stock migration ganda" )  
     end
   end
-  
-  
-   
   
   def generate_code
     # get the total number of sales order created in that month 
@@ -40,9 +45,7 @@ class StockMigration < ActiveRecord::Base
       (self.created_at >= start_datetime)  & 
       (self.created_at < end_datetime )
     }.count
-    # counter = 55 
-    
-    
+  
     if self.is_confirmed?
       counter = self.class.where{
         (self.created_at >= start_datetime)  & 
@@ -51,9 +54,7 @@ class StockMigration < ActiveRecord::Base
       }.count
     end
     
-    # counter = 55 
-    
-  
+   
     header = ""
     if not self.is_confirmed?  
       header = "[pending]"
@@ -72,9 +73,7 @@ class StockMigration < ActiveRecord::Base
   
   # auto confirm the stock migration 
   def self.create( params )
-    
     new_object              = StockMigration.new 
-    
     new_object.item_id      = params[:item_id]
     new_object.quantity     = params[:quantity]
     new_object.average_cost = BigDecimal( params[:average_cost] )
@@ -85,27 +84,27 @@ class StockMigration < ActiveRecord::Base
       end 
     end
     
-  
-    
     return new_object 
   end
   
   def  update(  params )
-    
-     
     self.quantity     = params [:quantity]
     self.average_cost = BigDecimal( params[:average_cost] ) 
     
-    # guard.. if there is error, won't go through
     ActiveRecord::Base.transaction do
       if self.save   
-        # stock_entry.update_stock_migration_stock_entry( self ) if not stock_entry.nil? 
-        stock_mutation.update_from_stock_migration( self ) if not stock_mutation.nil? 
-        stock_entry.update_from_stock_migration( self ) if not stock_entry.nil? 
+        stock_entry.update_from_document_entry( self, self.quantity, self.average_cost ) if not stock_entry.nil? 
       end
     end
     
     return self 
+  end
+  
+  def stock_entry
+    StockEntry.where(
+      :source_document_entry_id => self.id ,
+      :source_document_entry => self.class.to_s
+    ).first 
   end
   
   
@@ -118,14 +117,8 @@ class StockMigration < ActiveRecord::Base
       self.is_confirmed = true 
       self.save 
       self.generate_code
-      
-      # create the Stock Entry  + Stock Mutation =>  Update Ready Item 
-      # StockEntry.generate_stock_migration_stock_entry( self  ) 
-      # 
-      StockEntry.generate_from_stock_migration( self  )
-      StockMutation.generate_from_stock_migration(  self )  
-      # item = self.item  
-      # item.add_stock_and_recalculate_average_cost_post_stock_entry_addition 
+       
+      StockEntry.generate_from_document_entry( self, self.quantity, self.average_cost  ) 
     end
   end
   
