@@ -100,8 +100,8 @@ class StockMigration < ActiveRecord::Base
     ActiveRecord::Base.transaction do
       if self.save   
         # stock_entry.update_stock_migration_stock_entry( self ) if not stock_entry.nil? 
-        stock_mutation.update_stock_migration_stock_mutation( self ) if not stock_mutation.nil? 
-        stock_entry.update_stock_migration_stock_entry( self ) if not stock_entry.nil? 
+        stock_mutation.update_from_stock_migration( self ) if not stock_mutation.nil? 
+        stock_entry.update_from_stock_migration( self ) if not stock_entry.nil? 
       end
     end
     
@@ -129,6 +129,10 @@ class StockMigration < ActiveRecord::Base
     end
   end
   
+  
+  def parent_document
+    self 
+  end
   
     
   

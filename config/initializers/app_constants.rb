@@ -15,10 +15,14 @@ LOCAL_TIME_ZONE = "Jakarta"
 EXT_41_JS = 'https://s3.amazonaws.com/weyewe-extjs/41/ext-all.js'
 
 
+ 
+STOCK_ENTRY_USAGE = {
+  :delivery         => 1,
+  :stock_adjustment => 2, 
+  :in_house_repair  => 3 
+}
 
-# Application constants: FIFO inventory costing 
-
-STOCK_ENTRY_USAGE_CASE = {
+MUTATION_CASE = {
   # => 0-199 == addition 
     # => 0-9 == internal addition
   :stock_migration => 0 , 
@@ -37,27 +41,6 @@ STOCK_ENTRY_USAGE_CASE = {
   :sales => 20 ,
   :sales_return => 21 
 
-} 
-
-STOCK_ENTRY_USAGE = {
-  :delivery         => 1,
-  :stock_adjustment => 2, 
-  :in_house_repair  => 3 
-}
-
-MUTATION_CASE = {
-  :stock_migration => 0, 
-  :sales_order => 1 ,
-  :stock_conversion_source => 2 ,
-  :scrap_item => 3,  # ready item -> scrap item
-  :purchase_receival => 4 ,
-  
-  :stock_adjustment => 33 ,
-   # deduction from now on
-  
-  :delivery => 34,
-  :delivery_lost => 35,
-  :delivery_returned => 36
 }
 
 MUTATION_STATUS = {

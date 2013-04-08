@@ -8,43 +8,78 @@ class StockMutation < ActiveRecord::Base
                   :scrap_item_id
                   
   belongs_to :item
-  after_save :update_item_statistics
-  after_create :update_item_statistics
+  
   
   has_many :stock_entry_mutations
   has_many :stock_entries, :through => :stock_entry_mutations
    
+   
+  after_save :update_item_statistics
+  after_create :update_item_statistics
 
   def update_item_statistics
-    self.reload 
-    item.update_ready_quantity
+    # self.reload 
+    #  item.update_ready_quantity
   end
   
-  
-  def StockMutation.generate_from_stock_migration( stock_migration )
-    new_object = StockMutation.new 
-    
-    new_object.creator_id               = stock_migration.creator_id
-    
-    new_object.quantity                 = stock_migration.quantity
-    
-    new_object.source_document_entry_id = stock_migration.id    
-    new_object.source_document_id       = stock_migration.id 
-    new_object.source_document_entry    = stock_migration.class.to_s
-    new_object.source_document          = stock_migration.class.to_s
-    new_object.item_id                  = stock_migration.item_id
-    new_object.mutation_case            = MUTATION_CASE[:stock_migration] 
-    new_object.mutation_status          = MUTATION_STATUS[:addition]  
-    
-    new_object.save 
-  end
-  
-  def update_from_stock_migration(stock_migration)
-    return nil if stock_migration.quantity == self.quantity 
-    
-    self.quantity = stock_migration.quantity 
+  def update_quantity(quantity )
+    self.quantity = quantity
     self.save 
   end
+  
+  def self.generate_from_document_entry( stock_entry, document_entry )
+    new_object = StockMutation.new 
+    
+    new_object.quantity                 = document_entry.quantity
+    new_object.item_id                  = document_entry.item_id
+    
+    new_object.source_document_entry_id = document_entry.id    
+    new_object.source_document_id       = document_entry.id 
+    new_object.source_document_entry    = document_entry.class.to_s
+    new_object.source_document          = document_entry.class.to_s
+    
+    if document_entry.class.to_s == "StockMigration"
+      mutation_case = MUTATION_CASE[:stock_migration] 
+      mutation_status = MUTATION_STATUS[:addition] 
+    elsif   document_entry.class.to_s == "PurchaseReceivalEntry"
+      mutation_case = MUTATION_CASE[:purchase_receival] 
+      mutation_status = MUTATION_STATUS[:addition]
+    end
+    
+    
+    new_object.mutation_case = mutation_case
+    new_object.mutation_status = mutation_status
+    
+    if new_object.save
+      StockEntryMutation.create(
+        :stock_entry_id => stock_entry.id , 
+        :stock_mutation_id => new_object.id ,
+        :quantity =>  new_object.quantity ,
+        :case => mutation_case,  
+        :mutation_status =>  mutation_status 
+      ) 
+    end
+  end
+   
+   
+  
+  
+  
+  
+########################################################
+########################################################
+##############      The rest is for latter 
+########################################################
+########################################################
+  
+  
+  # Try it with stock_migration (the FIFO for stock_entry ) 
+  
+  
+  
+  
+  
+  
   
   def StockMutation.create_stock_adjustment( employee, stock_adjustment)
     item = stock_adjustment.item 

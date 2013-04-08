@@ -10,12 +10,13 @@ class CreateItems < ActiveRecord::Migration
       
       t.decimal :selling_price , :precision => 11, :scale => 2 , :default => 0  # 10^9 << max value
       
+      t.decimal :inventory_value , :precision => 12, :scale => 2 , :default => 0  #  9 * 10^9 << max value
+      
       
       # Stock Mutation.
       t.integer :ready , :default           => 0 
       t.integer :pending_receival , :default => 0 
       t.integer :pending_delivery , :default => 0  
-      
       
       t.boolean :is_deleted , :default => false
 

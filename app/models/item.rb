@@ -2,10 +2,9 @@ class Item < ActiveRecord::Base
   include UniqueNonDeleted
   validate :unique_non_deleted_name 
   validates_presence_of :name
-   
-  has_many :material_usages, :through => :usage_options
-  has_many :usage_options 
-   
+  
+  has_many :stock_entries 
+  
   def self.active_objects
     Item.where(:is_deleted => false).order("id DESC")
   end
@@ -37,6 +36,13 @@ class Item < ActiveRecord::Base
     self.save 
   end
   
+  def update_inventory_value
+  end
+  
+  def update_ready_quantity
+    self.ready = self.stock_entries.where(:is_finished => false).sum("remaining_quantity")
+    self.save 
+  end
   
   def add_stock_and_recalculate_average_cost_post_stock_entry_addition( new_stock_entry )  
      total_amount = ( self.average_cost * self.ready)   + 
