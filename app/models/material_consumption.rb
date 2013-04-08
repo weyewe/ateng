@@ -5,5 +5,8 @@ class MaterialConsumption < ActiveRecord::Base
   belongs_to :usage_option 
   
   def confirm
+    # deduct stock (stock mutation) 
   end
+
+  
 end
