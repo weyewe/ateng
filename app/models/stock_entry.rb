@@ -38,11 +38,13 @@ class StockEntry < ActiveRecord::Base
   end
   
   def shift_stock_usage
-    excess_quantity = self.calculated_remaining_quantity *( -1 )
-    
     self.is_finished = true
     self.remaining_quantity = 0 
-    self.save 
+    self.save
+    
+    excess_quantity = self.calculated_remaining_quantity *( -1 )
+    # take stock_entry_mutations with total quantity == 3 or more 
+    StockEntryMutation.distribute_excess_quantity( self, excess_quantity ) 
   end
   
   def calculated_remaining_quantity 
@@ -50,6 +52,13 @@ class StockEntry < ActiveRecord::Base
     deduction = self.stock_entry_mutations.where(:mutation_status =>  MUTATION_STATUS[:deduction] ).sum('quantity')
     
     return addition - deduction 
+  end
+  
+  def operational_usage_stock_entry_mutations
+    self.stock_entry_mutations.where(
+      :case => StockEntryMutation.operational_usage_mutation_case,
+      :mutation_status => MUTATION_STATUS[:deduction]
+    ).order("id DESC")
   end
   
    
@@ -101,6 +110,10 @@ class StockEntry < ActiveRecord::Base
     self.reload 
   end
  
+ 
+  def self.first_available_for_item( item )
+    StockEntry.where(:is_finished => false, :item_id => item.id ).order('id ASC').first
+  end
   
   
   
