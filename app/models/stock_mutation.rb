@@ -52,20 +52,15 @@ class StockMutation < ActiveRecord::Base
     
     if new_object.save
       StockEntryMutation.create(
-        :stock_entry_id => stock_entry.id , 
+        :stock_entry_id    => stock_entry.id , 
         :stock_mutation_id => new_object.id ,
-        :quantity =>  new_object.quantity ,
-        :case => mutation_case,  
-        :mutation_status =>  mutation_status 
+        :quantity          =>  new_object.quantity ,
+        :case              => mutation_case,  
+        :mutation_status   =>  mutation_status 
       ) 
     end
   end
    
-   
-  
-  
-  
-  
 ########################################################
 ########################################################
 ##############      The rest is for latter 

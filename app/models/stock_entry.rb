@@ -6,18 +6,20 @@ class StockEntry < ActiveRecord::Base
   
   validates_presence_of :item_id , :quantity, :base_price_per_piece
   
-  after_save :update_creation_stock_mutation   
+  # for quantity update (Tracking FIFO price)
+  # after_save :update_creation_stock_mutation   
   
   def update_creation_stock_mutation
-    if self.quantity != self.creation_stock_mutation.quantity 
-      self.creation_stock_mutation.update_quantity( self.quantity ) 
-      self.creation_stock_entry_mutation.update_quantity( self.quantity )
-      self.update_remaining_quantity 
-      self.reload 
-      item = self.item
-      item.update_inventory_cost  # remaining inventory cost 
-      item.update_ready_quantity  # how many do we have in hand? 
-    end
+    self.creation_stock_mutation.update_quantity( self.quantity ) 
+    self.creation_stock_entry_mutation.update_quantity( self.quantity )
+    self.update_ready_quantity 
+  end
+  
+  def update_ready_quantity
+    self.update_remaining_quantity 
+    self.reload
+    item = self.item
+    item.update_ready_quantity
   end
   
   def update_remaining_quantity 
@@ -29,7 +31,7 @@ class StockEntry < ActiveRecord::Base
       self.is_finished = true 
       self.save
     elsif excess_quantity > 0
-      self.excess_quantity = 0  
+      self.remaining_quantity = excess_quantity  
       self.is_finished = false 
       self.save 
     elsif excess_quantity  < 0 
@@ -96,8 +98,9 @@ class StockEntry < ActiveRecord::Base
     new_object.quantity                 = quantity
     new_object.base_price_per_piece     = base_price_per_piece
     
-    if new_object.save 
+    if new_object.save
       StockMutation.generate_from_document_entry(new_object, document_entry ) 
+      new_object.update_creation_stock_mutation
     end
   end
   
@@ -106,8 +109,7 @@ class StockEntry < ActiveRecord::Base
     self.quantity             = quantity
     self.base_price_per_piece = base_price_per_piece
     self.save
-    
-    self.reload 
+    self.update_creation_stock_mutation
   end
  
  

@@ -10,7 +10,7 @@ class Item < ActiveRecord::Base
   end
    
   
-  def self.create( params) 
+  def self.create_object( params) 
     new_object = Item.new  
     
     new_object.name                      = params[:name] 
@@ -20,7 +20,7 @@ class Item < ActiveRecord::Base
     return new_object 
   end
   
-  def  update( params)  
+  def  update_object( params)  
     self.name                      = params[:name] 
     self.selling_price = params[:selling_price] 
     
@@ -40,7 +40,11 @@ class Item < ActiveRecord::Base
   end
   
   def update_ready_quantity
-    self.ready = self.stock_entries.where(:is_finished => false).sum("remaining_quantity")
+    puts "Inside update_ready_quantity\n"*3
+    self.ready = self.stock_entries.where{
+      (remaining_quantity.not_eq 0 )
+    }.sum("remaining_quantity")
+    
     self.save 
   end
   

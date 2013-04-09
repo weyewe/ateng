@@ -72,7 +72,7 @@ class StockMigration < ActiveRecord::Base
   
   
   # auto confirm the stock migration 
-  def self.create( params )
+  def self.create_object( params )
     new_object              = StockMigration.new 
     new_object.item_id      = params[:item_id]
     new_object.quantity     = params[:quantity]
@@ -87,13 +87,13 @@ class StockMigration < ActiveRecord::Base
     return new_object 
   end
   
-  def  update(  params )
+  def  update_object(  params )
     self.quantity     = params [:quantity]
     self.average_cost = BigDecimal( params[:average_cost] ) 
     
     ActiveRecord::Base.transaction do
-      if self.save   
-        stock_entry.update_from_document_entry( self, self.quantity, self.average_cost ) if not stock_entry.nil? 
+      if self.save   and self.is_confirmed? and not  stock_entry.nil?
+        stock_entry.update_from_document_entry( self, self.quantity, self.average_cost )  
       end
     end
     
