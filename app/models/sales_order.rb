@@ -4,7 +4,7 @@ class SalesOrder < ActiveRecord::Base
   has_many :sales_order_entries 
   
   
-  def self.create( params  )  
+  def self.create_object( params  )  
     new_object  = self.new
     new_object.customer_id = params[:customer_id]
     
@@ -15,7 +15,7 @@ class SalesOrder < ActiveRecord::Base
     return new_object 
   end
   
-  def update( params ) 
+  def update_object( params ) 
     self.customer_id = params[:customer_id]
     self.save
   end
@@ -68,7 +68,6 @@ class SalesOrder < ActiveRecord::Base
     ActiveRecord::Base.transaction do
       
       self.is_confirmed = true 
-      self.confirmer_id = employee.id
       self.confirmed_at = DateTime.now  
       self.save
       self.generate_code

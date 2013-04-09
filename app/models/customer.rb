@@ -11,7 +11,7 @@ class Customer < ActiveRecord::Base
   
   
   
-  def create( params )
+  def self.create_object( params )
     
     new_object = self.new 
     new_object.name = params[:name]
@@ -28,7 +28,7 @@ class Customer < ActiveRecord::Base
     return new_object 
   end
   
-  def update( params )
+  def update_object( params )
     self.name = params[:name]
     self.contact_person = params[:contact_person]
     self.phone = params[:phone]

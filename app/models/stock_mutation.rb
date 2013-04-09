@@ -14,13 +14,7 @@ class StockMutation < ActiveRecord::Base
   has_many :stock_entries, :through => :stock_entry_mutations
    
    
-  after_save :update_item_statistics
-  after_create :update_item_statistics
-
-  def update_item_statistics
-    # self.reload 
-    #  item.update_ready_quantity
-  end
+  
   
   def update_quantity(quantity )
     self.quantity = quantity
@@ -63,12 +57,46 @@ class StockMutation < ActiveRecord::Base
    
 ########################################################
 ########################################################
-##############      The rest is for latter 
+##############      The rest is for stock consumption: can be purchase return, can be broken item, can be sales
 ########################################################
 ########################################################
   
   
-  # Try it with stock_migration (the FIFO for stock_entry ) 
+  
+  
+  def self.create_or_update_sales_stock_mutation( sales_order_entry ) 
+    past_object = self.where(
+      :source_document_entry => sales_order_entry.class.to_s,
+      :source_document_entry_id => sales_order_entry.id,
+      :mutation_case => MUTATION_CASE[:sales_item],
+      :mutation_status => MUTATION_STATUS[:deduction]
+    ).first 
+    
+    if past_object.nil? 
+      new_object = self.new
+      new_object.quantity                 = sales_order_entry.quantity
+      new_object.source_document_entry_id = sales_order_entry.id 
+      new_object.source_document_id       = sales_order_entry.sales_order.id 
+      new_object.source_document_entry    = sales_order_entry.class.to_s
+      new_object.source_document          = sales_order_entry.sales_order.class.to_s
+      new_object.item_id                  = sales_order_entry.entry_id 
+      new_object.mutation_case            = MUTATION_CASE[:sales_item] 
+      new_object.mutation_status          = MUTATION_STATUS[:deduction]
+      
+      if new_object.save 
+        StockEntryMutation.create_consumption( new_object )
+      end
+    else
+      past_object.quantity = sales_order_entry.quantity
+      past_object.item_id = sales_order_entry.entry_id 
+      
+      if past_object.save 
+        StockEntryMutation.update_consumption(  past_object  ) 
+      end
+    end
+  end
+  
+  
   
   
   

@@ -38,8 +38,10 @@ MUTATION_CASE = {
   :purchase_return => 11,
 
     # => 20-29 == related to sales to customer  
-  :sales => 20 ,
-  :sales_return => 21 
+  :sales_item => 20 ,
+  :sales_return => 21 ,
+  
+  :sales_service_usage => 25
 
 }
 

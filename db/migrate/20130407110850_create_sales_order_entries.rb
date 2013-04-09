@@ -14,9 +14,12 @@ class CreateSalesOrderEntries < ActiveRecord::Migration
        
       t.decimal :unit_price , :precision => 11, :scale => 2 , :default => 0
       t.decimal :total_price , :precision  => 11, :scale => 2 , :default => 0  # 10^9 << max value
-      t.decimal :discount , :precision           => 4, :scale => 2 , :default => 0  # 99.99 << max value
+      t.decimal :discount , :precision           => 5, :scale => 2 , :default => 0  # 99.99 << max value
 
       t.boolean :is_deleted , :default => false 
+      t.boolean :is_confirmed, :default => false 
+      t.integer :confirmer_id 
+      t.datetime :confirmed_at
       
       t.timestamps
     end

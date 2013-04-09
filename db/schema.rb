@@ -96,8 +96,11 @@ ActiveRecord::Schema.define(:version => 20130409020218) do
     t.integer  "quantity"
     t.decimal  "unit_price",     :precision => 11, :scale => 2, :default => 0.0
     t.decimal  "total_price",    :precision => 11, :scale => 2, :default => 0.0
-    t.decimal  "discount",       :precision => 4,  :scale => 2, :default => 0.0
+    t.decimal  "discount",       :precision => 5,  :scale => 2, :default => 0.0
     t.boolean  "is_deleted",                                    :default => false
+    t.boolean  "is_confirmed",                                  :default => false
+    t.integer  "confirmer_id"
+    t.datetime "confirmed_at"
     t.datetime "created_at",                                                       :null => false
     t.datetime "updated_at",                                                       :null => false
   end

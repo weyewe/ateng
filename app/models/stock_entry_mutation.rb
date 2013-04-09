@@ -78,4 +78,29 @@ class StockEntryMutation < ActiveRecord::Base
   end
   
   
+  # CONSUMING THE STOCK_ENTRY
+  
+  def self.create_consumption( stock_mutation ) 
+  end
+  
+  def self.update_consumption( stock_mutation ) 
+    stock_entries       = self.stock_entries 
+    is_item_changed     = false 
+    is_quantity_changed = false 
+
+    if stock_entries.first.item_id != stock_mutation.item_id 
+      is_item_changed = true 
+    end
+    
+    if stock_mutation.stock_entry_mutations.sum('quantity') !=  stock_mutation.quantity
+      is_quantity_changed = true 
+    end
+    
+    
+    
+    
+    
+  end
+  
+  
 end
