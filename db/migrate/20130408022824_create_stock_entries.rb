@@ -17,6 +17,11 @@ class CreateStockEntries < ActiveRecord::Migration
       # item.ready = StockEntry.where(:item_id => item.id, :is_finished => true ).sum("remaining_quantity")  
       
       
+      # how can we enforce FIFO?
+      # one way: to perform shifting on stock_entry contraction/expansion 
+      t.boolean :is_prime , :default => true 
+      t.integer :parent_stock_entry_id  
+      
       t.boolean :is_finished, :default => false 
       t.decimal :base_price_per_piece, :precision => 12, :scale => 2 , :default => 0 # 10^9 << max value
        

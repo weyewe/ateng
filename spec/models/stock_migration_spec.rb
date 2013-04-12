@@ -215,6 +215,12 @@ describe StockMigration do
       it 'should change the inventory_value'
     end
     
+    
+    # we need to test the shifting!!! 
+    # steps
+    # create 2 stock_entries
+    # create stock consumption on one
+    # perform contraction or deletion on the first stock_entry 
     context "stock_entry consumption (through sales?)" do
       it 'should reduce remaining quantity'
       
@@ -222,6 +228,10 @@ describe StockMigration do
       end
       
       context 'stock_migration quantity update [expansion]' do
+      end
+      
+      context "stock_migration quantity update [destroy]" do
+        # if it is not available, will be destroyed => 
       end
     end
   end

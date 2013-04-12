@@ -3,6 +3,8 @@ class SalesOrderEntry < ActiveRecord::Base
   has_many :service_executions 
   has_many :material_consumptions 
   
+  has_many :sales_return_entries 
+  
   validate  :quantity_must_greater_than_zero, 
             # :unit_price_must_be_greater_than_zero , # it is commented because we are inferring the unit price from the item
             :item_sales_object_entry_uniqueness ,
@@ -146,6 +148,7 @@ class SalesOrderEntry < ActiveRecord::Base
   
   def deduct_stock
     # what if there is no stock? => no deduction
+    StockMutation.create_or_update_sales_stock_mutation( self ) 
     
     # start with stock mutation, then , the stock mutation will distribute the deduction
 

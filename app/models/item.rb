@@ -4,6 +4,9 @@ class Item < ActiveRecord::Base
   validates_presence_of :name
   
   has_many :stock_entries 
+  has_many :purchase_order_entries
+  has_many :purchase_receival_entries 
+  has_many :sales_order_entries 
   
   def self.active_objects
     Item.where(:is_deleted => false).order("id DESC")
@@ -63,34 +66,14 @@ class Item < ActiveRecord::Base
      self.save 
 
    end
- 
+
 =begin
-  BECAUSE OF SALES
+UPDATE ITEM STATISTIC
 =end
-  def deduct_ready_quantity( quantity)
-    self.ready -= quantity 
-    self.save
-  end
-  
-  def add_ready_quantity( quantity ) 
-    self.ready += quantity 
-    self.save
-  end
-  
-=begin
-  BECAUSE OF SCRAP -> SCRAP EXCHANGE
-=end
-  
-  def deduct_scrap_quantity( quantity )
-    self.scrap -= quantity 
-    self.ready += quantity 
-    self.save
-  end
-  
-  def add_scrap_quantity( quantity ) 
-    self.scrap += quantity 
-    self.ready -= quantity 
+
+  def update_pending_receival
+    self.pending_receival = self.purchase_order_entries.where(:is_confirmed => true ).sum("quantity") - 
+    self.purchase_receival_entries.where(:is_confirmed => true ).sum("quantity")
     self.save 
   end
-  
 end

@@ -68,12 +68,14 @@ describe SalesOrder do
       :quantity => @quantity1 , 
       :average_cost => @average_cost_1
     })
+    @stock_entry1 = @stock_migration1.stock_entry 
     
     @stock_migration2 = StockMigration.create_object({
       :item_id => @item2.id, 
       :quantity => @quantity2 , 
       :average_cost => @average_cost_2
     })
+    @stock_entry2 = @stock_migration2.stock_entry 
     
     @stock_migration3 = StockMigration.create_object({
       :item_id => @item3.id, 
@@ -199,7 +201,7 @@ describe SalesOrder do
     
     context "so_entry creation" do
       before(:each) do
-        @so_quantity1 = 3
+        @so_quantity1 = @stock_entry1.remaining_quantity - 4 
         
         @so_entry1 = SalesOrderEntry.create_object(  @so, {
           :entry_id => @item1.id ,
@@ -207,7 +209,7 @@ describe SalesOrder do
           :quantity =>  @so_quantity1 ,
           :discount => '0'
         })
-        @so_quantity2 = 1
+        @so_quantity2 =  @stock_entry2.remaining_quantity
         @so_entry2 = SalesOrderEntry.create_object(  @so, {
           :entry_id => @item2.id ,
           :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
@@ -258,12 +260,19 @@ describe SalesOrder do
           @so_entry2.reload
           # @initial_pending_delivery1 = @item1.pending_delivery
           # @initial_pending_delivery2 = @item2.pending_delivery
+          @initial_ready = @item1.ready 
+          @stock_entry1.reload
+          @stock_entry2.reload 
+          @initial_remaining_quantity1 = @stock_entry1.remaining_quantity 
+          @initial_remaining_quantity2 = @stock_entry2.remaining_quantity 
           
           @so.confirm 
           @item1.reload
           @item2.reload 
           @so_entry1.reload
           @so_entry2.reload
+          @stock_entry1.reload 
+          @stock_entry2.reload 
         end
         
         it 'should confirm the so and its entries' do
@@ -273,9 +282,27 @@ describe SalesOrder do
         end
         
         it 'should deduct the item ready quantity' do
+          @final_ready = @item1.ready 
+          diff = @initial_ready - @final_ready 
+          diff.should == @so_quantity1 
         end
         
         it 'should deduct the stock_entry remaining quantity' do
+          # in this case, for the so_entry1, we designed that the 
+          # => sales quantity is less than the remaining_quantity in stock migration
+          @final_remaining_quantity1 = @stock_entry1.remaining_quantity
+          @diff = @initial_remaining_quantity1 - @final_remaining_quantity1 
+          @diff.should == @so_quantity1  
+        end
+        
+        it 'should deduct the stock_entry remaining quantity. If it is finished, is_finished is set to be true' do
+          # in this case, for the so_entry2, we designed that the
+          # => sales_quantity is equal to the remaining quantity in stock_migration
+          @final_remaining_quantity2 = @stock_entry2.remaining_quantity
+          @diff = @initial_remaining_quantity2 - @final_remaining_quantity2
+          @diff.should == @so_quantity2
+          @stock_entry2.is_finished.should be_true 
+          @stock_entry2.remaining_quantity.should == 0 
         end
         
         # it 'should update the pending delivery' do

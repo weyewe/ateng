@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130409020218) do
+ActiveRecord::Schema.define(:version => 20130410025149) do
 
   create_table "companies", :force => true do |t|
     t.string   "name"
@@ -78,6 +78,54 @@ ActiveRecord::Schema.define(:version => 20130409020218) do
   create_table "price_histories", :force => true do |t|
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
+  end
+
+  create_table "purchase_order_entries", :force => true do |t|
+    t.integer  "purchase_order_id"
+    t.string   "code"
+    t.integer  "item_id"
+    t.integer  "quantity"
+    t.boolean  "is_fulfilled",      :default => false
+    t.boolean  "is_confirmed",      :default => false
+    t.boolean  "is_deleted",        :default => false
+    t.datetime "created_at",                           :null => false
+    t.datetime "updated_at",                           :null => false
+  end
+
+  create_table "purchase_orders", :force => true do |t|
+    t.integer  "supplier_id"
+    t.string   "code"
+    t.boolean  "is_confirmed", :default => false
+    t.integer  "confirmer_id"
+    t.datetime "confirmed_at"
+    t.boolean  "is_deleted",   :default => false
+    t.datetime "created_at",                      :null => false
+    t.datetime "updated_at",                      :null => false
+  end
+
+  create_table "purchase_receival_entries", :force => true do |t|
+    t.string   "code"
+    t.integer  "item_id"
+    t.integer  "purchase_receival_id"
+    t.integer  "purchase_order_entry_id"
+    t.integer  "supplier_id"
+    t.integer  "quantity",                :default => 0
+    t.boolean  "is_confirmed",            :default => false
+    t.boolean  "is_deleted",              :default => false
+    t.datetime "created_at",                                 :null => false
+    t.datetime "updated_at",                                 :null => false
+  end
+
+  create_table "purchase_receivals", :force => true do |t|
+    t.integer  "supplier_id"
+    t.date     "receival_date"
+    t.string   "code"
+    t.boolean  "is_confirmed",  :default => false
+    t.integer  "confirmer_id"
+    t.datetime "confirmed_at"
+    t.boolean  "is_deleted",    :default => false
+    t.datetime "created_at",                       :null => false
+    t.datetime "updated_at",                       :null => false
   end
 
   create_table "roles", :force => true do |t|

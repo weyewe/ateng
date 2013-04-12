@@ -9,88 +9,77 @@ class StockEntryMutation < ActiveRecord::Base
     self.quantity = quantity
     self.save 
   end
-  
-  def self.operational_usage_mutation_case
+ 
+  def self.creation_mutation_cases
     return [
-        MUTATION_CASE[:stock_conversion],
-        MUTATION_CASE[:stock_adjustment],
-        MUTATION_CASE[:sales]
+        MUTATION_CASE[:purchase_receival], # on the usage case 
+        MUTATION_CASE[:stock_adjustment_addition], # on the usage case 
+        MUTATION_CASE[:stock_conversion_target] 
       ]
   end
   
-  
-# Used for stock_entry contraction or expansion
-  # on construction case, redistribution of excess quantity will be performed 
-  def self.distribute_excess_quantity( stock_entry, excess_quantity )
-    
-    # operational usage => 1, 2 , 3 ,4 ,5 
-    # frmo the last usage, reassign it 
-    stock_entry.operational_usage_stock_entry_mutations.each do |stock_entry_mutation|
-      
-      return if excess_quantity ==  0 
-      
-      distributed_quantity = 0 
-      if stock_entry_mutation.quantity  >= excess_quantity 
-        distributed_quantity = excess_quantity
-      else 
-        distributed_quantity = stock_entry_mutation.quantity 
-      end
-      
-      stock_entry_mutation.reassign_by_quantity( stock_entry, excess_quantity ) 
-      excess_quantity -= distributed_quantity
-    end
+  def self.item_focused_consumption_mutation_cases
+    return [
+        MUTATION_CASE[:sales_item_usage],
+        MUTATION_CASE[:sales_service_usage],
+        MUTATION_CASE[:stock_conversion_source],
+        MUTATION_CASE[:stock_adjustment_deduction]  
+      ]
   end
   
-  def reassign_by_quantity(stock_entry, excess_quantity)
-    stock_mutation = self.stock_mutation 
-    # we start with 1.. it can lead to one single stock entry
-    # or it can be coming from 2 different stock_entries 
-    first_change = true 
-    while excess_quantity != 0  
-      available_stock_entry = StockEntry.first_available_for_item( stock_entry.item )
-      reassigned_quantity = 0 
-      
-      if first_change == true   # it means that the initial stock_entry_mutation has not been re-pointed 
-        if available_stock_entry.remaining_quantity >= excess_quantity 
-          self.stock_entry_id = available_stock_entry.id 
-          self.quantity = excess_quantity 
-          self.save 
-          reassigned_quantity = excess_quantity
-        else 
-          # the initial stock_entry_mutation has been repointed.. 
-          # But the new container quantity is less than the stock_entry_mutation quantity
-          self.stock_entry_id = available_stock_entry.id 
-          self.quantity = available_stock_entry.remaining_quantity 
-          self.save 
-          reassigned_quantity = available_stock_entry.remaining_quantity 
-        end
-      else
-        if available_stock_entry.remaining_quantity >= excess_quantity 
-          reassigned_quantity = excess_quantity 
-        else
-          reassigned_quantity = available_stock_entry.remaining_quantity 
-        end
-        
-        StockEntryMutation.create(
-          :stock_entry_id => available_stock_entry.id , 
-          :stock_mutation_id => stock_mutation.id ,
-          :quantity =>  remaining_quantity ,
-          :case => self.case  ,  
-          :mutation_status =>  self.mutation_status 
-        )
-      end
-      
-      excess_quantity -= reassigned_quantity 
-      
-      available_stock_entry.update_remaining_quantity
-      first_change = false 
-    end  # the while excess_quantity != 0 
-    
+  def self.item_focused_addition_mutation_cases
+    return [
+        MUTATION_CASE[:purchase_receival],
+        MUTATION_CASE[:stock_conversion_target],
+        MUTATION_CASE[:stock_adjustment_addition]  
+      ]
   end
   
+  def self.document_focused_addition_mutation_cases
+    return [
+        MUTATION_CASE[:sales_return]  # it is returning the sales_order_entry, not the item
+      ]
+  end
   
-# used for stock_entry consumption 
-  def self.create_consumption( stock_mutation ) 
+  def self.document_focused_consumption_mutation_cases
+    return [
+        MUTATION_CASE[:purchase_return] # it is returning the purchase_return_entry.. not the item
+      ]
+  end
+   
+=begin
+  Flow => STOCK_MUTATION => STOCK_ENTRY => STOCK_ENTRY_MUTATION => update stock_entry remaining_quantity => update item.ready 
+=end
+
+  
+
+  def self.create_object( stock_mutation , stock_entry) 
+    if    self.item_focused_addition_mutation_cases.includes?( stock_mutation.mutation_case ) 
+      self.create_addition_object(   stock_mutation, stock_entry) 
+    elsif self.item_focused_consumption_mutation_cases.includes?( stock_mutation.mutation_case ) 
+      self.create_consumption_object( stock_mutation  ) 
+    elsif MUTATION_CASE[:purchase_return] == stock_mutation.mutation_case
+      self.create_purchase_return_object( stock_mutation  )
+    elsif MUTATION_CASE[:sales_return] == stock_mutation.mutation_case 
+      self.create_sales_return_object( stock_mutation ) 
+    end  
+  end
+  
+  def self.create_addition_object( stock_mutation , stock_entry )
+    StockEntryMutation.create(
+      :stock_entry_id => stock_entry.id , 
+      :stock_mutation_id => stock_mutation.id ,
+      :quantity =>  stock_entry.quantity ,
+      :case => stock_mutation.mutation_case  ,  
+      :mutation_status =>  stock_mutation.mutation_status
+    )
+    
+    stock_entry.update_remaining_quantity 
+    item = stock_entry.item
+    item.update_ready_quantity
+  end
+  
+  def self.create_consumption_object( stock_mutation  ) 
     quantity_to_be_disbursed = stock_mutation.quantity 
     item = stock_mutation.item 
     
@@ -107,7 +96,7 @@ class StockEntryMutation < ActiveRecord::Base
         :stock_entry_id => stock_entry.id , 
         :stock_mutation_id => stock_mutation.id ,
         :quantity =>  consumed_quantity ,
-        :case => stock_mutation.case  ,  
+        :case => stock_mutation.mutation_case  ,  
         :mutation_status =>  stock_mutation.mutation_status
       )
       
@@ -118,29 +107,102 @@ class StockEntryMutation < ActiveRecord::Base
     item.update_ready_quantity 
   end
   
-  def self.update_consumption( stock_mutation ) 
-    stock_entries       = self.stock_entries 
-    is_item_changed     = false 
-    is_quantity_changed = false 
-    item = stock_entries.first.item 
+  def self.create_sales_return_object( stock_mutation  ) 
+    sales_return_entry = SalesReturnEntry.find_by_id stock_mutation.source_document_entry_id 
+    # find the stock_mutation for the sales_entry 
+    sales_order_entry_stock_mutation = StockMutation.where(
+      :source_document_entry_id => sales_return_entry.sales_order_entry.id,
+      :source_document_entry => sales_return.sales_order_entry.class.to_s 
+    ).first 
     
-    if stock_entries.first.item_id != stock_mutation.item_id 
-      is_item_changed = true 
+    item = stock_mutation.item 
+    quantity_to_be_returned = sales_return_entry.quantity 
+    
+    
+    sales_order_entry_stock_mutation.stock_entry_mutations.order("id DESC").each do |stock_entry_mutation|
+      returned_quantity = 0 
+      return nil  if quantity_to_be_returned == 0 
+      
+      available_quantity  =  stock_entry_mutation.quantity 
+      stock_entry = stock_entry_mutation.stock_entry 
+      
+      if available_quantity >= quantity_to_be_returned
+        returned_quantity  = quantity_to_be_returned
+      else
+        returned_quantity = available_quantity 
+      end
+      
+      StockEntryMutation.create(
+        :stock_entry_id => stock_entry.id , 
+        :stock_mutation_id => stock_mutation.id ,
+        :quantity =>  returned_quantity ,
+        :case => stock_mutation.mutation_case  ,  
+        :mutation_status =>  stock_mutation.mutation_status
+      )
+      
+      quantity_to_be_returned -= returned_quantity 
+      stock_entry.update_remaining_quantity 
+    end
+    item.update_ready_quantity 
+  end
+  
+  def self.create_purchase_return_object( stock_mutation, stock_entry ) 
+    # purchase_return is linked to the purchase_order 
+    # however, the physical item received is through purchase_receival. How can we solve for it? 
+    # 
+    purchase_return_entry = PurchaseReturnEntry.find_by_id stock_mutation.source_document_entry_id 
+    
+    # we need to get all purchase receival associated with this purchase_order_entry 
+    purchase_receival_entry_id_list = [] 
+    PurchaseReceivalEntry.where(
+      :purchase_order_entry_id => purchase_return_entry.purchase_order_entry_id 
+    ).each do |purchase_receival_entry|
+      purchase_receival_entry_id_list << purchase_receival_entry.id 
     end
     
-   
-    stock_mutation.stock_entry_mutations.each do |stock_entry_mutation|
-      stock_entry = stock_entry_mutation.stock_entry
-      stock_entry.update_remaining_quantity
-      stock_entry_mutation.destroy 
+    item = stock_mutation.item 
+    quantity_to_be_returned = stock_mutation.quantity 
+    
+    
+    StockMutation.where(
+      :source_document_entry_id => purchase_receival_entry_id_list ,
+      :source_document_entry => PurchaseReceivalEntry.to_s 
+    ).order("id DESC").each do |purchase_receival_stock_mutation|
+      
+      return nil if quantity_to_be_returned == 0 
+      
+      # stock_entry = purchase_receival_stock_mutation.stock_entries.first # addition only have 1 stock_entry 
+      stock_entry = StockEntry.where(
+        :source_document_entry_id => purchase_receival_stock_mutation.source_document_entry_id, 
+        :source_document_entry_id => purchase_receival_stock_mutation.source_document_entry 
+      ).first 
+      
+      # for every purchase_receival stock_entry.. add the purchase_return_stock_entry_mutation 
+      purchase_return_quantity = 0 
+      if stock_entry.quantity >= quantity_to_be_returned
+        purchase_return_quantity = quantity_to_be_returned
+      else
+        purchase_return_quantity = stock_entry.quantity
+      end
+      
+      StockEntryMutation.create(
+        :stock_entry_id => stock_entry.id , 
+        :stock_mutation_id => stock_mutation.id ,
+        :quantity =>  purchase_return_quantity ,
+        :case => stock_mutation.mutation_case  ,  
+        :mutation_status =>  stock_mutation.mutation_status
+      )
+      
+      quantity_to_be_returned -= purchase_return_quantity
+      stock_entry.refresh_usage
     end
     
-    self.create_consumption( stock_mutation )
-    
-    if is_item_changed
-      item.update_ready_quantity
-    end
+    item.update_ready_quantity 
   end
   
   
+  # we will be using stock_entry.refresh_usage a lot for update and delete
+  
+  
+   
 end

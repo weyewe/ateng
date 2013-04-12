@@ -23,25 +23,18 @@ STOCK_ENTRY_USAGE = {
 }
 
 MUTATION_CASE = {
-  # => 0-199 == addition 
-    # => 0-9 == internal addition
-  :stock_migration => 0 , 
-  :stock_adjustment =>1,
-  :scrap => 2,  # broken 
-  :stock_conversion =>3, 
-  :stock_adjustment => 4 , 
-  :purchase_receival => 5, 
 
-
-    # => 10-19 == related to vendor 
-  :purchase => 10 ,  
-  :purchase_return => 11,
-
-    # => 20-29 == related to sales to customer  
-  :sales_item => 20 ,
-  :sales_return => 21 ,
   
-  :sales_service_usage => 25
+  :stock_migration => 0, 
+  :stock_adjustment_addition => 1, 
+  :stock_conversion_target => 2,
+  :purchase_receival => 3, 
+  :sales_return => 4, 
+  
+  :stock_adjustment_deduction => 51, 
+  :stock_conversion_usage => 52, 
+  :sales_item_usage => 53,
+  :sales_service_usage => 54 
 
 }
 
