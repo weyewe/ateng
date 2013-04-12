@@ -145,18 +145,31 @@ class StockEntry < ActiveRecord::Base
     end
   end
   
-  def shift_usage( quantity_to_be_shifted  ) 
+  def shift_usage( quantity_to_be_shifted  )  # there is limit to the quantity to be shifted => quantity - total purchase return quantity
+    # idea => we want to shift the consumption stock mutation
+    # method: 1. in a stock entry, get the available quantity to be shifted. actual - purchase return 
+    # 2. 
     self.is_finished = true
     self.remaining_quantity = 0 
     self.save 
    
-    stock_mutation_to_be_re_map_list = []
+    stock_mutation_id_to_be_re_map_list = []
     self.stock_entry_mutations.
             where(
               :case => StockEntryMutation.item_focused_consumption_mutation_cases , 
               :mutation_status => MUTATION_STATUS[:deduction]).
             order("id DESC").each do |sem|
-        
+      # for all stock_entry_mutation, get the stock_entry_mutation to be shifted
+      # we want to get the associated stock_mutation so that they all can be re-mapped
+      # special for sales_item_usage stock_mutation, we must re-map the sales return. 
+      # get the stock mutation for the related sales return as well. 
+      
+      # after we have gotten all related stock_mutation, delete the stock_entry_mutations related with it
+      # meanwhile, we collect the stock_entry 
+      
+      # after all deletion. refresh the stock_entry.remaining_quantity  
+      # then, we re-map the stock_mutation 
+ 
       shifted_quantity = 0 
       if sem.quantity >= quantity_to_be_shifted
         shifted_quantity = quantity_to_be_shifted
@@ -164,7 +177,7 @@ class StockEntry < ActiveRecord::Base
         shifted_quantity = sem.quantity 
       end
       
-      stock_mutation_id_to_be_re_map_list << sem.stock_mutation.id 
+      stock_mutation_id_to_be_re_map_list << sem.stock_mutation_id 
       if stock_mutation.mutation_case == MUTATION_CASE[:sales_item_usage]
         sales_return_entry_id_list = SalesReturnEntry.
                                       where(:sales_order_entry_id => stock_mutation.source_document_entry_id).
@@ -177,22 +190,25 @@ class StockEntry < ActiveRecord::Base
       end
       
       quantity_to_be_shifted -= shifted_quantity
-      
     end
     
     #  destroy the stock entry mutation. and refresh
+    related_stock_entry_id_list = [] 
     StockEntryMutation.where(:stock_mutation_id => stock_mutation_id_to_be_re_map_list ).each do |sem|
-      stock_entry = sem.stock_entry
+      related_stock_entry_id_list << sem.stock_entry_id 
       sem.destroy 
-      stock_entry.update_remaining_quantity  if stock_entry.id != self.id 
     end
     
-    self.update_remaining_quantity 
+    StockEntry.where( :id => related_stock_entry_id_list).each do |stock_entry|
+      stock_entry.update_remaining_quantity 
+    end
     
-    StockMutation.where(:id => stock_mutation_id_to_be_re_map_list).each do |stock_mutation|
+    StockMutation.where(:id => stock_mutation_id_to_be_re_map_list).order("id ASC").each do |stock_mutation|
+      next if StockEntryMutation.creation_mutation_cases.include?( stock_mutation.mutation_case ) 
+      next if stock_mutation.mutation_case ==  MUTATION_CASE[:purchase_return]
+      
       StockEntryMutation.create_object( stock_mutation, nil )
     end
-    
   end
   
     

@@ -25,6 +25,8 @@ class StockEntryMutation < ActiveRecord::Base
         MUTATION_CASE[:stock_conversion_source],
         MUTATION_CASE[:stock_adjustment_deduction]  
       ]
+      # purchase return is not included over here.. it is not consumption..
+      # it calls for re-arranging 
   end
   
   def self.item_focused_addition_mutation_cases
