@@ -145,6 +145,41 @@ class StockEntry < ActiveRecord::Base
     end
   end
   
+  
+=begin
+  What is the use case of shift_usage?  ( we are focusing on update quantity) 
+  1. purchase return.
+    PurchaseReturn is essentially contraction on the stock_entry.
+      when it is contracted, there are quantity to be shifted => boom! ( change the inventory on hand price )
+    
+    How about update quantity? 
+      when it is updated, if expansion => just change the inventory amount on hand
+      if there is item change or contraction => update inventory amount, then update the stock_entry_mutation distribution 
+      
+      if contraction => shift_usage ( quantity_to_be_shifted )
+      
+      
+    How about update item? (item_change) FUCK..
+    old_item => shift all quantity used.. if there are associated document
+      purchase_receival -> purchase return (don't shift)... and don't allow change_item
+      receival 3 .. 5 ... 8 
+      return 15.. 
+      then, we want to change item in the purchase receival. Can we? Can't. We returned 15 on tab of the purchase_receival
+      Solution => delete all the purchase_return 
+      # then, change the purchase receival item..
+      # then, re create the purchase_return 
+      
+      if there are no associated document
+      shift all quantity used. 
+      change the item.  => Boom, we have a  ready stock_entry .. fresh 
+    
+    update_item_ready 
+    
+    new_item
+      => update item ready 
+      # yeah, we have fresh stock_entry!!! 
+    
+=end
   def shift_usage( quantity_to_be_shifted  )  # there is limit to the quantity to be shifted => quantity - total purchase return quantity
     # idea => we want to shift the consumption stock mutation
     # method: 1. in a stock entry, get the available quantity to be shifted. actual - purchase return 
