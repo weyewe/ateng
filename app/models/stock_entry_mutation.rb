@@ -54,6 +54,21 @@ class StockEntryMutation < ActiveRecord::Base
 =end
 
   
+  
+  def self.delete_object(  stock_mutation, stock_entry )  
+    affected_stock_entry_list = [] 
+    self.where(
+      :stock_mutation_id => stock_mutation.id
+    ).each do |sem|
+      affected_stock_entry_list << sem.stock_entry if stock_entry.id != sem.stock_entry_id 
+      
+      sem.destroy 
+    end
+    
+    affected_stock_entry_list.each {|x| x.update_remaining_quantity }
+  end
+  
+  
 
   def self.create_object( stock_mutation , stock_entry) 
     if    self.item_focused_addition_mutation_cases.includes?( stock_mutation.mutation_case ) 
@@ -203,7 +218,7 @@ class StockEntryMutation < ActiveRecord::Base
   end
   
   
-  # we will be using stock_entry.refresh_usage a lot for update and delete
+  
   
   
    

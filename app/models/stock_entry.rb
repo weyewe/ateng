@@ -78,8 +78,49 @@ class StockEntry < ActiveRecord::Base
     new_object.source_document_entry    = document_entry.class.to_s 
     new_object.source_document_entry_id = document_entry.id
     
-    new_object.save
+    if new_object.save
+      StockEntryMutation.create_object(  stock_mutation , stock_entry )
+    end
+    
     return new_object 
+  end
+  
+  def update_object( document_entry,   stock_mutation , initial_quantity, initial_item , initial_base_price )
+    quantity             = StockEntry.extract_quantity( document_entry ) 
+    base_price_per_piece = StockEntry.extract_base_price_per_price( document_entry )
+    item                 = StockEntry.extract_item( document_entry )
+    
+    is_item_changed       =   (item.id != initial_item.id   )?  true : false 
+    is_quantity_changed   =   (quantity != initial_quantity )? true : false 
+    is_base_price_changed =   (base_price_per_piece != initial_base_price )? true : false 
+    
+    if is_item_changed? 
+      self.item_id = item.id 
+      self.quantity = quantity 
+      self.base_price_per_piece = base_price_per_piece
+      self.save
+      
+      re_mapped_stock_mutation_list = self.stock_mutations 
+      
+      StockEntryMutation.delete_object( stock_mutation , self )  
+      
+      re_mapped_stock_mutation_list.each do |stock_mutation|
+        StockEntryMutation.create_object( stock_mutation , self  )
+      end
+      
+      initial_item.update_ready_quantity 
+      # we need to update the Inventory Price, because base price per piece is changed
+      
+    elsif not is_item_changed and is_quantity_changed 
+       # delete the stock_entry_mutation
+       # update the stock_entries involved => update remaining quantity 
+       # 
+    elsif not is_item_changed and not is_quantity_changed and is_base_price_changed 
+      # only recalculate the base price 
+    end
+  end
+  
+  def delete_object
   end
    
    
@@ -147,20 +188,9 @@ class StockEntry < ActiveRecord::Base
   
   
 =begin
-  What is the use case of shift_usage?  ( we are focusing on update quantity) 
-  1. purchase return.
-    PurchaseReturn is essentially contraction on the stock_entry.
-      when it is contracted, there are quantity to be shifted => boom! ( change the inventory on hand price )
-    
-    How about update quantity? 
-      when it is updated, if expansion => just change the inventory amount on hand
-      if there is item change or contraction => update inventory amount, then update the stock_entry_mutation distribution 
-      
-      if contraction => shift_usage ( quantity_to_be_shifted )
-      
-      
-    How about update item? (item_change) FUCK..
-    There are 3 class of stock_mutations : creation, consumption, and sub_documents(sales_return and purchase_return) 
+  Updating stock mutation 
+  
+  There are 3 class of stock_mutations : creation, consumption, and sub_documents(sales_return and purchase_return) 
     
     If we update consumption (change quantity) => 
       1. Delete the current stock_entry_mutation. 
@@ -198,8 +228,9 @@ class StockEntry < ActiveRecord::Base
   
     If we delete sales_return 
       1. Delete the stock_entry mutation
-          delete all stock mutation 
+          delete  stock mutation 
           update all_consumed stock_entries 
+          item.update_ready_quantity 
           
     If we delete purchase_return 
       1. delete the stock entry mutation
@@ -207,7 +238,7 @@ class StockEntry < ActiveRecord::Base
         stock_entry.update_remaining_quantity
         item.update ready_quantity
         
-    If we delete the stock_entry
+    If we delete the creation stock_entry
       1. shift usage (all) 
         delete the stock_mutation
         delete the stock_entry_mutation

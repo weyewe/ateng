@@ -104,13 +104,52 @@ class StockMutation < ActiveRecord::Base
     end
   end
    
+   
+   
+   
 ########################################################
 ########################################################
 ##############      The rest is for stock consumption: can be purchase return, can be broken item, can be sales
 ########################################################
 ########################################################
   
-  
+  def self.create_or_update_stock_migration_stock_mutation( stock_migration ) 
+    past_object = self.where(
+      :source_document_entry => stock_migration.class.to_s, 
+      :source_document_entry_id => stock_migration.id , 
+      :mutation_case => MUTATION_CASE[:stock_migration],
+      :mutation_status => MUTATION_STATUS[:addition]
+    ).first 
+    
+    if past_object.nil?
+      new_object = self.new
+      new_object.quantity                 = stock_migration.quantity
+      new_object.source_document_entry_id = stock_migration.id 
+      new_object.source_document_id       = stock_migration.id
+      new_object.source_document_entry    = stock_migration.class.to_s
+      new_object.source_document          = stock_migration.class.to_s
+      new_object.item_id                  = stock_migration.item_id 
+      new_object.mutation_case            = MUTATION_CASE[:stock_migration] 
+      new_object.mutation_status          = MUTATION_STATUS[:addition]
+      
+      if new_object.save 
+        stock_entry = StockEntry.create_object( stock_migration,  new_object   )
+        
+      end
+      
+    else
+      initial_quantity = past_object.quantity 
+      initial_item  = past_object.item 
+      
+      past_object.quantity = stock_migration.quantity
+      past_object.item_id = stock_migration.item_id 
+      
+      if past_object.save 
+        stock_entry = StockEntry.update_object( stock_migration,   past_object , initial_quantity, initial_item  ) 
+        StockEntryMutation.update_object( stock_entry, new_object )
+      end
+    end
+  end
   
   
   def self.create_or_update_sales_stock_mutation( sales_order_entry ) 
@@ -168,7 +207,6 @@ class StockMutation < ActiveRecord::Base
       
       if new_object.save 
         stock_entry = StockEntry.create_object( new_object, purchase_receival_entry  ) 
-        # StockEntryMutation.create_addition( stock_entry, new_object )
       end
     else
       past_object.quantity = sales_order_entry.quantity
@@ -176,22 +214,9 @@ class StockMutation < ActiveRecord::Base
       
       if past_object.save 
         stock_entry = StockEntry.update_object(   past_object, purchase_receival_entry ) 
-        # StockEntryMutation.update_addition( stock_entry ,  past_object  ) 
       end
     end
-    
-    new_object = StockMutation.new 
-    
-    new_object.quantity                 = purchase_receival_entry.quantity
-    new_object.source_document_entry_id = purchase_receival_entry.id 
-    new_object.source_document_id       = purchase_receival_entry.purchase_receival_id
-    new_object.source_document_entry    = purchase_receival_entry.class.to_s
-    new_object.source_document          = purchase_receival_entry.purchase_receival.class.to_s
-    new_object.item_id                  = purchase_receival_entry.purchase_order_entry.item_id 
-    new_object.mutation_case            = MUTATION_CASE[:purchase_receival] 
-    new_object.mutation_status          = MUTATION_STATUS[:addition]  
-    
-    new_object.save
+ 
   end
   
   
@@ -199,7 +224,7 @@ class StockMutation < ActiveRecord::Base
   
   
   
-  def StockMutation.create_stock_adjustment( employee, stock_adjustment)
+  def self.create_stock_adjustment( employee, stock_adjustment)
     item = stock_adjustment.item 
     
     new_object = StockMutation.new 

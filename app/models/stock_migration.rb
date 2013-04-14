@@ -93,7 +93,8 @@ class StockMigration < ActiveRecord::Base
     
     ActiveRecord::Base.transaction do
       if self.save   and self.is_confirmed? and not  stock_entry.nil?
-        stock_entry.update_from_document_entry( self, self.quantity, self.average_cost )  
+        StockMutation.create_or_update_stock_migration_stock_mutation( self ) 
+        # stock_entry.update_from_document_entry( self, self.quantity, self.average_cost )  
       end
     end
     
@@ -118,7 +119,7 @@ class StockMigration < ActiveRecord::Base
       self.save 
       self.generate_code
        
-      StockEntry.generate_from_document_entry( self, self.quantity, self.average_cost  ) 
+      StockMutation.create_or_update_stock_migration_stock_mutation( self ) 
     end
   end
   
