@@ -160,26 +160,86 @@ class StockEntry < ActiveRecord::Base
       
       
     How about update item? (item_change) FUCK..
-    old_item => shift all quantity used.. if there are associated document
-      purchase_receival -> purchase return (don't shift)... and don't allow change_item
-      receival 3 .. 5 ... 8 
-      return 15.. 
-      then, we want to change item in the purchase receival. Can we? Can't. We returned 15 on tab of the purchase_receival
-      Solution => delete all the purchase_return 
-      # then, change the purchase receival item..
-      # then, re create the purchase_return 
-      
-      if there are no associated document
-      shift all quantity used. 
-      change the item.  => Boom, we have a  ready stock_entry .. fresh 
+    There are 3 class of stock_mutations : creation, consumption, and sub_documents(sales_return and purchase_return) 
     
-    update_item_ready 
+    If we update consumption (change quantity) => 
+      1. Delete the current stock_entry_mutation. 
+          Re map the stock_mutation    
+          stock_entry.update_remaining_quantity
+          item.update_ready_quantity 
     
-    new_item
-      => update item ready 
-      # yeah, we have fresh stock_entry!!! 
+    If we update the sales_return 
+      1. delete the current stock_entry_mutation
+          re map the stock_mutation 
+          stock_entry.update_remaining_quantity
+          item.update_ready_quantity 
+          
+    If we update the purchase_return
+      1. delete hte current stock_entry_mutations 
+        remap the stock_mutation
+        stock_entry.update_remaining_quantity 
+        item.update_ready_quantity
     
+    If we update the creation stock_entry
+      if expansion =>  increase the stock_entry_mutation quantity 
+                        stock_entry.update_remaining_quantity 
+                        item.update_ready_item 
+                        
+      if contraction => shift_usage >> amount contracted    
+                        stock_entry.update_remaining_quantity 
+                        item.update_ready_item 
+    
+    ################################ DELETION #############################
+    If we delete the consumption
+     1. delete the stock_entry_mutation
+        delete the stock_mutation
+        update all consumed stock_entries stock_entry.update_remaining_quantity
+        item.update_ready_quantity 
+  
+    If we delete sales_return 
+      1. Delete the stock_entry mutation
+          delete all stock mutation 
+          update all_consumed stock_entries 
+          
+    If we delete purchase_return 
+      1. delete the stock entry mutation
+        delete the stock_mutation
+        stock_entry.update_remaining_quantity
+        item.update ready_quantity
+        
+    If we delete the stock_entry
+      1. shift usage (all) 
+        delete the stock_mutation
+        delete the stock_entry_mutation
+        delete the stock_entry
+        item.update_ready_quantity
+    
+  ############################## HOW ABOUT THE CHANGE ITEM? 
+  change consumption item? 
+    1. delete the stock_entry_mutation
+    2. all related stock_entries => stock_entry.update_remaining_quantity
+    3. old item.update_ready_quantity
+    4. re_map the stock_mutation 
+    
+  change sales_return_item? 
+    1. delete the stock_entry_mutation
+    2. all related stock_entries => stock_entry.update_remaining_quantity
+    3. old item.update_ready_quantity
+    4. re_map the stock_mutation 
+    
+  change purchase_return_item?   => purchase return is done on purchase receival basis 
+    1. delete the stock_entry_mutation
+    2. all related stock_entries => stock_entry.update_remaining_quantity
+    3. old item.update_ready_quantity
+    4. re_map the stock_mutation
+    
+  change the creation stock_entry  (if there is purchase return, don't allow)
+    1. shift the usage (all)
+    2. delete teh stock_entry_mutation creation
+    3. recreate the stock_entry_mutation
+    4. update remaining quantity of the stock_entry 
 =end
+
   def shift_usage( quantity_to_be_shifted  )  # there is limit to the quantity to be shifted => quantity - total purchase return quantity
     # idea => we want to shift the consumption stock mutation
     # method: 1. in a stock entry, get the available quantity to be shifted. actual - purchase return 
