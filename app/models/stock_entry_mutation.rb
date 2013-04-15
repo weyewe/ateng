@@ -47,23 +47,24 @@ class StockEntryMutation < ActiveRecord::Base
   end
    
 =begin
-  Flow => STOCK_MUTATION => STOCK_ENTRY => STOCK_ENTRY_MUTATION => update stock_entry remaining_quantity => update item.ready 
+  Flow => STOCK_MUTATION =>  ( STOCK_ENTRY ) optional, for creation_stock_mutation => 
+                        STOCK_ENTRY_MUTATION => 
+                        update stock_entry remaining_quantity => 
+                        update item.ready 
 =end
 
   
-  
-  def self.delete_object(  stock_mutation, stock_entry )  
+  def self.delete_object( stock_mutation ) 
     affected_stock_entry_list = [] 
-    self.where(
-      :stock_mutation_id => stock_mutation.id
-    ).each do |sem|
-      affected_stock_entry_list << sem.stock_entry if stock_entry.id != sem.stock_entry_id 
-      
+    self.joins(:stock_entry).where(:stock_mutation_id => stock_mutation.id).each do |sem|
+      affected_stock_entry_list << sem.stock_entry  # if stock_entry.id != sem.stock_entry_id 
       sem.destroy 
     end
     
     affected_stock_entry_list.each {|x| x.update_remaining_quantity }
   end
+  
+   
   
   
 
@@ -253,20 +254,14 @@ class StockEntryMutation < ActiveRecord::Base
     is_item_changed         = ( first_stock_entry.item_id != stock_mutation.item_id)? true : false 
     initial_quantity_used   = stock_mutation.stock_entry_mutations.sum("quantity")
     is_quantity_changed     = ( initial_quantity_used != stock_mutation.quantity)? true : false 
-    
-    # puts "==\n"
-    # puts "StockEntryMutation: inside update_consumption_object"
-    # puts "Number of stock_entries: #{affected_stock_entries.length}"
-    
+
     if is_item_changed or is_quantity_changed
-      # puts "StockEntryMutation: item changed or quantity changed"
       stock_mutation.stock_entry_mutations.each {|x| x.destroy }
       affected_stock_entries.each {|x| x.update_remaining_quantity }
       StockEntryMutation.create_object( stock_mutation , nil  )
     end
     
     if is_item_changed
-      # puts "StockEntryMutation: inside item changed"
       old_item = first_stock_entry.item 
       old_item.update_ready_quantity
     end

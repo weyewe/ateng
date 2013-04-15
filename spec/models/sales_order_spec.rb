@@ -415,9 +415,29 @@ describe SalesOrder do
             diff.should == @quantity_to_be_used_from_item3
           end
         end 
-        
-       
-  
+
+        context "post_confirm: delete" do
+          before(:each) do
+            @stock_entry1.reload
+            @stock_entry3.reload 
+            @item1.reload
+            @item3.reload 
+            @initial_item_ready1 = @item1.ready 
+            @initial_item_ready3 = @item3.ready 
+            @initial_remaining_quantity1 = @stock_entry1.remaining_quantity
+            @initial_remaining_quantity3 = @stock_entry3.remaining_quantity
+            @quantity_used_from_item1 = @so_entry1.quantity 
+            
+            @quantity_to_be_used_from_item3 =  @quantity3 - 1 
+            @so_entry1.delete_object
+            
+            @stock_entry1.reload
+            @stock_entry3.reload 
+            @item1.reload
+            @item3.reload
+          end
+        end
+
       end
     end
   end

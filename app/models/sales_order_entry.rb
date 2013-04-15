@@ -201,7 +201,25 @@ class SalesOrderEntry < ActiveRecord::Base
   def delete
     if not self.is_confirmed?
       self.destroy 
+      return nil 
     end
+    
+    
+    
+    ActiveRecord::Base.transaction do
+      if self.is_product?  # for POS: auto deduct 
+        StockMutation.create_or_update_sales_stock_mutation( self ) 
+      elsif self.is_service? 
+        self.confirm_service_performed_and_deduct_stock 
+        # ServicePerformed => commission to the employee responsible 
+        # MaterialUsage => basis of stock deduction 
+      end
+
+      self.is_deleted = true 
+      self.save
+    end
+    
+    
     # if it is service => problematic. we have to 
     # delete the MaterialUsed and ServicePerformed  
   end

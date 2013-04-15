@@ -112,7 +112,7 @@ class StockEntry < ActiveRecord::Base
       stock_entry.base_price_per_piece = base_price_per_piece
       stock_entry.save
       
-      StockEntryMutation.delete_object( stock_mutation , stock_entry )  
+      StockEntryMutation.delete_object( stock_mutation   )  
       
       re_mapped_stock_mutation_list.each do |stock_mutation|
         StockEntryMutation.create_object( stock_mutation , stock_entry  )
@@ -123,12 +123,7 @@ class StockEntry < ActiveRecord::Base
       
     elsif not is_item_changed and is_quantity_changed 
       diff = quantity - initial_quantity 
-      
-      # stock_entry.creation_stock_entry_mutation.quantity = quantity 
-      # stock_entry_mutation  = stock_entry.creation_stock_entry_mutation 
-      # stock_entry_mutation.quantity  = quantity 
-      # stock_entry_mutation.save 
-      # stock_entry.update_creation_stock_entry_mutation( quantity ) 
+     
       StockEntryMutation.update_object( stock_mutation, stock_entry ) 
       if diff > 0 # expansion
         stock_entry.base_price_per_piece = base_price_per_piece 
@@ -153,7 +148,18 @@ class StockEntry < ActiveRecord::Base
     end
   end
   
-  def delete_object
+  def self.delete_object(document_entry, stock_mutation)
+    stock_entry = StockEntry.where(
+      :source_document_entry => stock_mutation.source_document_entry, 
+      :souce_document_entry_id => stock_mutation.source_document_entry_id 
+    ).first 
+    
+    item = stock_mutation.item 
+    stock_entry.shift_usage( stock_mutation.quantity ) 
+    StockEntryMutation.delete_object( stock_mutation  )
+    stock_mutation.destroy 
+    stock_entry.destroy 
+    item.update_ready_quantity 
   end
   
    

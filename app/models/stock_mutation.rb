@@ -38,71 +38,60 @@ class StockMutation < ActiveRecord::Base
     end
   end
   
-  
-  def self.create_object( document_entry )
-    item = self.extract_item( document_entry ) 
-    mutation_case = self.extract_mutation_case( document_entry ) 
-    mutation_status = self.extract_mutation_status( document_entry )
-    
-    new_object = self.new 
-    new_object.item_id                  = item.id 
-    new_object.quantity                 = document_entry.quantity
-    new_object.source_document_entry_id = document_entry.id     
-    new_object.source_document_entry    = document_entry.class.to_s 
-    new_object.source_document_id       = document_entry.parent_document.id 
-    new_object.source_document          = document_entry.parent_document.class.to_s 
-    new_object.mutation_case            = mutation_case
-    new_object.mutation_status          = mutation_status
-    
-    if new_object.save
-      stock_entry = nil 
-      if StockEntryMutation.creation_mutation_cases.include?( mutation_case ) 
-        stock_entry = StockEntry.create_object( document_entry, stock_mutation ) 
-      end
-      StockEntryMutation.create_object( stock_mutation, stock_entry )
-    end
-
-  end
-  
-  def update_object( document_entry ) 
-  end
-  
-  def delete_object( document_entry ) 
-  end
-  
-  def self.generate_from_document_entry( stock_entry, document_entry )
-    new_object = StockMutation.new 
-    
-    new_object.quantity                 = document_entry.quantity
-    new_object.item_id                  = document_entry.item_id
-    
-    new_object.source_document_entry_id = document_entry.id    
-    new_object.source_document_id       = document_entry.id 
-    new_object.source_document_entry    = document_entry.class.to_s
-    new_object.source_document          = document_entry.class.to_s
-    
+  def self.extract_past_object( document_entry ) 
+    past_object = nil 
     if document_entry.class.to_s == "StockMigration"
-      mutation_case = MUTATION_CASE[:stock_migration] 
-      mutation_status = MUTATION_STATUS[:addition] 
-    elsif   document_entry.class.to_s == "PurchaseReceivalEntry"
-      mutation_case = MUTATION_CASE[:purchase_receival] 
-      mutation_status = MUTATION_STATUS[:addition]
+      past_object = self.where(
+        :source_document_entry => document_entry.class.to_s, 
+        :source_document_entry_id => document_entry.id , 
+        :mutation_case => MUTATION_CASE[:stock_migration],
+        :mutation_status => MUTATION_STATUS[:addition]
+      ).first
     end
     
-    
-    new_object.mutation_case = mutation_case
-    new_object.mutation_status = mutation_status
-    
-    if new_object.save
-      StockEntryMutation.create(
-        :stock_entry_id    => stock_entry.id , 
-        :stock_mutation_id => new_object.id ,
-        :quantity          =>  new_object.quantity ,
-        :mutation_case              => mutation_case,  
-        :mutation_status   =>  mutation_status 
-      ) 
+    if document_entry.class.to_s == 'SalesOrderEntry'
+      past_object = self.where(
+        :source_document_entry => document_entry.class.to_s,
+        :source_document_entry_id => document_entry.id,
+        :mutation_case => MUTATION_CASE[:sales_item_usage],
+        :mutation_status => MUTATION_STATUS[:deduction]
+      ).first
     end
+    
+    if document_entry.class.to_s == 'PurchaseReceivalEntry'
+      past_object = self.where(
+        :source_document_entry => document_entry.class.to_s,
+        :source_document_entry_id => document_entry.id,
+        :mutation_case => MUTATION_CASE[:purchase_receival],
+        :mutation_status => MUTATION_STATUS[:addition]
+      ).first
+    end
+    
+    return past_object 
   end
+  
+  def self.delete_object( document_entry ) 
+    stock_mutation = self.extract_past_object( document_entry ) 
+    return nil if past_object.nil? 
+    
+    if    StockEntryMutation.item_focused_addition_mutation_cases.include?( stock_mutation.mutation_case ) 
+      # update stock_entry creation is tough.. 
+      # 1.shift_usage( all quantity ) 
+      # 2. delete all associated stock_entry_mutation
+      # 3. all affected stock_entries => update_remaining_quantity
+      # 4. item.update_ready_quantity 
+      # 5. delete the stock mutation 
+      # 6. delete the stock_entry 
+      StockEntry.delete_object( document_entry , stock_mutation ) 
+    else
+      item = stock_mutation.item 
+      StockEntryMutation.delete_object( stock_mutation, nil )   # inside this method, the associated stock_entries are refreshed
+      stock_mutation.destroy 
+      item.update_ready_quantity 
+    end
+    
+  end
+  
    
    
    
@@ -112,14 +101,12 @@ class StockMutation < ActiveRecord::Base
 ##############      The rest is for stock consumption: can be purchase return, can be broken item, can be sales
 ########################################################
 ########################################################
+
+  
   
   def self.create_or_update_stock_migration_stock_mutation( stock_migration ) 
-    past_object = self.where(
-      :source_document_entry => stock_migration.class.to_s, 
-      :source_document_entry_id => stock_migration.id , 
-      :mutation_case => MUTATION_CASE[:stock_migration],
-      :mutation_status => MUTATION_STATUS[:addition]
-    ).first 
+
+    past_object = self.extract_past_object( stock_migration ) 
     
     if past_object.nil?
       new_object = self.new
@@ -144,22 +131,15 @@ class StockMutation < ActiveRecord::Base
       past_object.item_id = stock_migration.item_id 
       
       if past_object.save 
-        stock_entry = StockEntry.update_object( stock_migration,   past_object ) 
-        # StockEntryMutation.update_object( stock_entry, new_object )
+        StockEntry.update_object( stock_migration,   past_object ) 
       end
     end
   end
   
   
   def self.create_or_update_sales_stock_mutation( sales_order_entry ) 
-    # puts "==\n"
-    # puts "Inside StockMutation"
-    past_object = self.where(
-      :source_document_entry => sales_order_entry.class.to_s,
-      :source_document_entry_id => sales_order_entry.id,
-      :mutation_case => MUTATION_CASE[:sales_item_usage],
-      :mutation_status => MUTATION_STATUS[:deduction]
-    ).first 
+
+    past_object = self.extract_past_object( sales_order_entry ) 
     
     if past_object.nil? 
       new_object = self.new
@@ -188,13 +168,8 @@ class StockMutation < ActiveRecord::Base
   
   
   def StockMutation.generate_purchase_receival_stock_mutation( purchase_receival_entry  ) 
+    past_object = self.extract_past_object( purchase_receival_entry ) 
     
-    past_object = self.where(
-      :source_document_entry => purchase_receival_entry.class.to_s,
-      :source_document_entry_id => purchase_receival_entry.id,
-      :mutation_case => MUTATION_CASE[:purchase_receival],
-      :mutation_status => MUTATION_STATUS[:addition]
-    ).first
     
     if past_object.nil? 
       new_object = self.new
