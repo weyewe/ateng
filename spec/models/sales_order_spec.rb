@@ -321,7 +321,6 @@ describe SalesOrder do
         
         # POST CONFIRM UPDATE: update quantity 
         it 'should  allow quantity update if it does not exceed  the available item' do
-          
           @so_entry1.update_object({
             :entry_id => @item1.id,
             :quantity => @quantity1,

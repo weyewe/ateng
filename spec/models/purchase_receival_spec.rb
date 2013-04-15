@@ -220,6 +220,27 @@ describe PurchaseReceival do
         @item1.stock_entries.count.should == 2  # 1 stock_migration and 1 for purchase_receival
       end
       
+      it 'should produce 1 stock_mutation, 1 stock_entry' do
+        stock_entry =  StockEntry.where(
+          :source_document_entry => @pr_entry1.class.to_s , 
+          :source_document_entry_id => @pr_entry1.id
+        ).first 
+        
+        stock_entry.should be_valid 
+        stock_entry.remaining_quantity.should == @pr_quantity1
+        
+        stock_mutation = StockMutation.where(
+          :source_document_entry => @pr_entry1.class.to_s , 
+          :source_document_entry_id => @pr_entry1.id,
+          :mutation_status => MUTATION_STATUS[:addition],
+          :mutation_case => MUTATION_CASE[:purchase_receival]
+        ).first
+        
+        stock_mutation.should be_valid 
+        stock_mutation.quantity.should == @pr_quantity1
+        stock_mutation.item_id.should == @pr_entry1.item_id 
+      end
+      
       it 'should still preserve uniqueness' do
         @pr_entry1.update_object({
           :purchase_order_entry_id => @po_entry2.id ,
@@ -252,10 +273,116 @@ describe PurchaseReceival do
         @pr_entry1.should_not be_valid 
       end
       
-      context "update purchase_receival: quantity expansion" do
+      
+      
+      context "update post confirm: quantity contraction" do
         before(:each) do
+          @item1.reload
+          @pr_entry1.reload 
+
+          @diff = 2 
+          @new_quantity = @pr_entry1.quantity - @diff 
+          
+          @initial_item_ready1 = @item1.ready 
+          @pr_entry1.update_object({
+            :purchase_order_entry_id => @po_entry1.id ,
+            :quantity => @new_quantity   
+          })
+           
+          @item1.reload
+          @pr_entry1.reload
         end
+
+        it 'should be valid update' do
+          @pr_entry1.errors.size.should == 0 
+        end
+
+        it 'should change the quantity in stock_entry, stock_mutation, stock_entry_mutation' do
+          stock_entry = StockEntry.where(
+          :source_document_entry_id => @pr_entry1.id, 
+          :source_document_entry => @pr_entry1.class.to_s
+          ).first 
+          stock_entry.quantity.should == @new_quantity 
+          stock_entry.remaining_quantity.should == @new_quantity 
+
+          stock_mutation = StockMutation.where(
+          :source_document_entry => @pr_entry1.class.to_s, 
+          :source_document_entry_id => @pr_entry1.id 
+          ).first 
+          stock_mutation.quantity.should == @new_quantity 
+
+          stock_entry_mutation = StockEntryMutation.where(
+          :stock_entry_id    => stock_entry.id , 
+          :stock_mutation_id => stock_mutation.id  
+          ).first
+          stock_entry_mutation.quantity.should == @new_quantity 
+        end
+
+        it 'should change the item_ready quantity' do
+          @final_item_ready1 = @item1.ready 
+          diff = @initial_item_ready1 - @final_item_ready1 
+          diff.should == @diff 
+        end
+        
+        it 'should change the inventory_value'
       end
+
+
+      
+      
+      context "update post confirm: quantity expansion" do
+        before(:each) do
+          @item1.reload
+          @pr_entry1.reload 
+
+         
+          @new_quantity =  @pr_entry1.quantity + @remaining_pending_receival1
+          @initial_item_ready1 = @item1.ready 
+          @pr_entry1.update_object({
+            :purchase_order_entry_id => @po_entry1.id ,
+            :quantity => @new_quantity   
+          })
+           
+          @item1.reload
+          @pr_entry1.reload 
+        end
+
+        it 'should be valid update' do
+          @pr_entry1.errors.size.should == 0 
+        end
+
+        it 'should change the quantity in stock_entry, stock_mutation, stock_entry_mutation' do
+          stock_entry = StockEntry.where(
+          :source_document_entry_id => @pr_entry1.id, 
+          :source_document_entry => @pr_entry1.class.to_s
+          ).first 
+          stock_entry.quantity.should == @new_quantity 
+          stock_entry.remaining_quantity.should == @new_quantity 
+
+          stock_mutation = StockMutation.where(
+          :source_document_entry => @pr_entry1.class.to_s, 
+          :source_document_entry_id => @pr_entry1.id 
+          ).first 
+          stock_mutation.quantity.should == @new_quantity 
+
+          stock_entry_mutation = StockEntryMutation.where(
+          :stock_entry_id    => stock_entry.id , 
+          :stock_mutation_id => stock_mutation.id  
+          ).first
+          stock_entry_mutation.quantity.should == @new_quantity 
+        end
+
+
+        it 'should change the item_ready quantity' do
+          @final_item_ready1 = @item1.ready
+          diff = @final_item_ready1 - @initial_item_ready1 
+          diff.should == @remaining_pending_receival1
+        end
+        
+        it 'should change the inventory_value'
+      end
+
+
       
       context "delete purchase receival" do
         before(:each) do
