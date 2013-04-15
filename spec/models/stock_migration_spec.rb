@@ -172,6 +172,7 @@ describe StockMigration do
     # update only base_price => will not change the item. Will only re calculate the inventory cost and CoGS
       
       # can't update item in stock_migration 
+      
     context "update post confirm: quantity contraction" do
       before(:each) do
         @item.reload

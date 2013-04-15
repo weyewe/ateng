@@ -105,23 +105,29 @@ class StockEntry < ActiveRecord::Base
     is_base_price_changed =   (base_price_per_piece != initial_base_price_per_piece )? true : false 
     
     if is_item_changed
+      puts "Inside the is_item_changed"
       re_mapped_stock_mutation_list = stock_entry.stock_mutations 
-      
+   
       stock_entry.item_id = item.id 
       stock_entry.quantity = quantity 
       stock_entry.base_price_per_piece = base_price_per_piece
       stock_entry.save
       
-      StockEntryMutation.delete_object( stock_mutation   )  
-      
+      re_mapped_stock_mutation_list.each do |stock_mutation|
+        StockEntryMutation.delete_object(stock_mutation)  
+      end
+      stock_entry.reload 
+      stock_entry.update_remaining_quantity
       re_mapped_stock_mutation_list.each do |stock_mutation|
         StockEntryMutation.create_object( stock_mutation , stock_entry  )
       end
       
-      initial_item.update_ready_quantity 
+      initial_item.update_ready_quantity
+      item.update_ready_quantity 
       # we need to update the Inventory Price, because base price per piece is changed
       
     elsif not is_item_changed and is_quantity_changed 
+      puts "the quantity changed"
       diff = quantity - initial_quantity 
      
       StockEntryMutation.update_object( stock_mutation, stock_entry ) 
@@ -141,6 +147,7 @@ class StockEntry < ActiveRecord::Base
       
       item.update_ready_quantity 
     elsif not is_item_changed and not is_quantity_changed and is_base_price_changed 
+      puts "the base price changed"
       stock_entry.base_price_per_piece = base_price_per_piece 
       stock_entry.save
       # only recalculate the base price 

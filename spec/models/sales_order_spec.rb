@@ -342,6 +342,7 @@ describe SalesOrder do
         end
         
         # POST CONFIRM UPDATE: update item => from 1 to 3 
+        
         context "post_confirm: update item" do
           before(:each) do
             # puts "GONNA START UPDATE ITEM\n"*10
@@ -415,6 +416,10 @@ describe SalesOrder do
           end
         end 
 
+        
+        
+        
+        
         context "post_confirm: delete" do
           before(:each) do
             @stock_entry1.reload

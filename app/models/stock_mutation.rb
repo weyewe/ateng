@@ -186,6 +186,7 @@ class StockMutation < ActiveRecord::Base
       end
       
     else
+      puts "past_object exists"
       past_object.quantity = purchase_receival_entry.quantity
       past_object.item_id = purchase_receival_entry.item_id  
       
