@@ -122,14 +122,18 @@ class SalesOrderEntry < ActiveRecord::Base
     end
     
     self.discount = BigDecimal( params[:discount])
-   
-    if self.save 
-      StockMutation.create_or_update_sales_stock_mutation( self ) if self.is_confirmed?
-      self.assign_total_price 
-      if self.entry_case == SALES_ORDER_ENTRY_CASE[:service]
-        # delete the MaterialUsed and ServicePerformed 
+    
+    ActiveRecord::Base.transaction do
+      if self.save 
+        # puts "update object => going to StockMutation.create_or_update_sales_stock_mutation"
+        StockMutation.create_or_update_sales_stock_mutation( self ) if self.is_confirmed?
+        self.assign_total_price 
+        if self.entry_case == SALES_ORDER_ENTRY_CASE[:service]
+          # delete the MaterialUsed and ServicePerformed 
+        end
       end
     end
+    
     
     return self 
   end
@@ -167,17 +171,20 @@ class SalesOrderEntry < ActiveRecord::Base
   def confirm
     return nil if self.is_confirmed? 
     
-    if self.is_product?  # for POS: auto deduct 
-      StockMutation.create_or_update_sales_stock_mutation( self ) 
-    elsif self.is_service? 
-      self.confirm_service_performed_and_deduct_stock 
-      # ServicePerformed => commission to the employee responsible 
-      # MaterialUsage => basis of stock deduction 
+    ActiveRecord::Base.transaction do
+      if self.is_product?  # for POS: auto deduct 
+        StockMutation.create_or_update_sales_stock_mutation( self ) 
+      elsif self.is_service? 
+        self.confirm_service_performed_and_deduct_stock 
+        # ServicePerformed => commission to the employee responsible 
+        # MaterialUsage => basis of stock deduction 
+      end
+
+      self.is_confirmed = true 
+      self.confirmed_at = DateTime.now 
+      self.save
     end
     
-    self.is_confirmed = true 
-    self.confirmed_at = DateTime.now 
-    self.save 
   end
   
    

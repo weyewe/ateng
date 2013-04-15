@@ -345,6 +345,7 @@ describe SalesOrder do
         # POST CONFIRM UPDATE: update item => from 1 to 3 
         context "post_confirm: update item" do
           before(:each) do
+            # puts "GONNA START UPDATE ITEM\n"*10
             @stock_entry1.reload
             @stock_entry3.reload 
             @item1.reload
@@ -378,7 +379,25 @@ describe SalesOrder do
             diff.should == @quantity_used_from_item1
           end
           
+          it 'should recover the item1.ready: prove that there is no item.update_ready_quantity [version2: manual update]' do
+            @stock_entry1.update_remaining_quantity 
+            @item1.update_ready_quantity 
+            @final_item_ready1 = @item1.ready 
+            diff = @final_item_ready1 - @initial_item_ready1
+            diff.should == @quantity_used_from_item1
+          end
+          # shit, not updated 
+          
           it 'should recover the stock_entry1.remaining_quantity' do
+            @final_remaining_quantity1  = @stock_entry1.remaining_quantity 
+            diff = @final_remaining_quantity1 - @initial_remaining_quantity1 
+            diff.should == @quantity_used_from_item1
+          end
+          
+          
+          # FUUUCK... so, in the update_object, no update_remaining_quantity and no item.update_ready_quantity
+          it 'should recover the stock_entry1.remaining_quantity [version2.. manual update_remaining_quantity]' do
+            @stock_entry1.update_remaining_quantity 
             @final_remaining_quantity1  = @stock_entry1.remaining_quantity 
             diff = @final_remaining_quantity1 - @initial_remaining_quantity1 
             diff.should == @quantity_used_from_item1

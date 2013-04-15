@@ -152,6 +152,8 @@ class StockMutation < ActiveRecord::Base
   
   
   def self.create_or_update_sales_stock_mutation( sales_order_entry ) 
+    # puts "==\n"
+    # puts "Inside StockMutation"
     past_object = self.where(
       :source_document_entry => sales_order_entry.class.to_s,
       :source_document_entry_id => sales_order_entry.id,
@@ -174,6 +176,7 @@ class StockMutation < ActiveRecord::Base
         StockEntryMutation.create_object( new_object , nil ) 
       end
     else
+      # puts "create_or_update_sales_stock_mutation : inside the past_object.present? "
       past_object.quantity = sales_order_entry.quantity
       past_object.item_id = sales_order_entry.entry_id 
       

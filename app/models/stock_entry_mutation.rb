@@ -225,6 +225,7 @@ class StockEntryMutation < ActiveRecord::Base
     if    self.item_focused_addition_mutation_cases.include?( stock_mutation.mutation_case ) 
       self.update_addition_object(   stock_mutation, stock_entry) 
     elsif self.item_focused_consumption_mutation_cases.include?( stock_mutation.mutation_case ) 
+      # puts "Inside the update_consumption_object"
       self.update_consumption_object( stock_mutation  ) 
     elsif MUTATION_CASE[:purchase_return] == stock_mutation.mutation_case
       self.update_purchase_return_object( stock_mutation  )
@@ -245,20 +246,27 @@ class StockEntryMutation < ActiveRecord::Base
   end
   
   def self.update_consumption_object( stock_mutation ) 
-    affected_stock_entries = stock_mutation.stock_entries
-    first_stock_entry  = affected_stock_entries.first 
-    is_item_changed     = ( first_stock_entry.item_id != stock_mutation.item_id)? true : false 
-    is_quantity_changed = ( first_stock_entry.quantity != stock_mutation.quantity)? true : false 
+    # this is a fucking lazy loading 
+    affected_stock_entries  = stock_mutation.stock_entries
+    affected_stock_entries.length # just to crack the lazy loading
+    first_stock_entry       = affected_stock_entries.first 
+    is_item_changed         = ( first_stock_entry.item_id != stock_mutation.item_id)? true : false 
+    initial_quantity_used   = stock_mutation.stock_entry_mutations.sum("quantity")
+    is_quantity_changed     = ( initial_quantity_used != stock_mutation.quantity)? true : false 
     
-    
+    # puts "==\n"
+    # puts "StockEntryMutation: inside update_consumption_object"
+    # puts "Number of stock_entries: #{affected_stock_entries.length}"
     
     if is_item_changed or is_quantity_changed
+      # puts "StockEntryMutation: item changed or quantity changed"
       stock_mutation.stock_entry_mutations.each {|x| x.destroy }
       affected_stock_entries.each {|x| x.update_remaining_quantity }
       StockEntryMutation.create_object( stock_mutation , nil  )
     end
     
     if is_item_changed
+      # puts "StockEntryMutation: inside item changed"
       old_item = first_stock_entry.item 
       old_item.update_ready_quantity
     end
