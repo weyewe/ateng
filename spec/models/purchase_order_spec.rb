@@ -290,80 +290,80 @@ describe PurchaseOrder do
         
         
         # PURCHASE RECEIVAL 
-        
-        context "coupled has takes place (in this case: purchase receival)" do
-          before(:each) do
-            @pr = PurchaseReceival.create_object( {
-              :supplier_id => @supplier.id 
-            } )
-            
-            @pr_quantity1 = @po_quantity1 - 5 
-            @pr_entry1 = PurchaseReceivalEntry.create_object(  @pr, {
-              :purchase_order_entry_id => @po_entry1.id ,
-              :quantity => @pr_quantity1 
-            })
-        
-            @pr_quantity2 = @po_quantity2 - 5
-            @pr_entry2 = PurchaseReceivalEntry.create_object(  @pr, {
-              :purchase_order_entry_id => @po_entry2.id ,
-              :quantity => @pr_quantity2 
-            })
-            @pr.reload
-            @pr.confirm 
-            @item1.reload
-            @item1.reload 
-            @pr_entry1.reload
-            @pr_entry2.reload 
-          end
-          
-          it 'should provide sane purchase_receival' do
-            @pr.is_confirmed.should be_true 
-            @pr.active_purchase_receival_entries.count.should == 2 
-          end
-          
-          # FIRST Branch : on update  # can't change the item anymore if there is purchase receival
-          it 'should not allow item update' do
-            @po_entry1.update_object(  {
-              :item_id => @item3.id ,
-              :quantity => @po_quantity1
-            })
-            
-            # @po_entry1.should_not be_valid 
-            @po_entry1.errors.size.should_not == 0 
-          end
-          
-          it 'should allow quantity update' do
-            @po_entry1.update_object(  {
-              :item_id => @item1.id ,
-              :quantity => @po_quantity1 - 1 
-            })
-            
-            @po_entry1.should be_valid 
-          end
-          
-          it 'should not allow quantity update to be lower than the used quantity' do
-            @po_entry1.update_object( {
-              :item_id => @item1.id ,
-              :quantity => @pr_quantity2 - 1 
-            })
-            
-            @po_entry1.errors.size.should_not == 0 
-          end
-          
-          
-          
-         
-         # Second Branch : on delete  # can't delete the purchase order entry if there is purchase receival
-          it 'should not allow delete' do
-            @po_entry1.delete 
-            @po_entry1.reload
-            @po_entry1.persisted?.should be_true 
-          end
-          
-          
-        end 
-        
-        
+        # 
+        # context "coupled has takes place (in this case: purchase receival)" do
+        #   before(:each) do
+        #     @pr = PurchaseReceival.create_object( {
+        #       :supplier_id => @supplier.id 
+        #     } )
+        #     
+        #     @pr_quantity1 = @po_quantity1 - 5 
+        #     @pr_entry1 = PurchaseReceivalEntry.create_object(  @pr, {
+        #       :purchase_order_entry_id => @po_entry1.id ,
+        #       :quantity => @pr_quantity1 
+        #     })
+        # 
+        #     @pr_quantity2 = @po_quantity2 - 5
+        #     @pr_entry2 = PurchaseReceivalEntry.create_object(  @pr, {
+        #       :purchase_order_entry_id => @po_entry2.id ,
+        #       :quantity => @pr_quantity2 
+        #     })
+        #     @pr.reload
+        #     @pr.confirm 
+        #     @item1.reload
+        #     @item1.reload 
+        #     @pr_entry1.reload
+        #     @pr_entry2.reload 
+        #   end
+        #   
+        #   it 'should provide sane purchase_receival' do
+        #     @pr.is_confirmed.should be_true 
+        #     @pr.active_purchase_receival_entries.count.should == 2 
+        #   end
+        #   
+        #   # FIRST Branch : on update  # can't change the item anymore if there is purchase receival
+        #   it 'should not allow item update' do
+        #     @po_entry1.update_object(  {
+        #       :item_id => @item3.id ,
+        #       :quantity => @po_quantity1
+        #     })
+        #     
+        #     # @po_entry1.should_not be_valid 
+        #     @po_entry1.errors.size.should_not == 0 
+        #   end
+        #   
+        #   it 'should allow quantity update' do
+        #     @po_entry1.update_object(  {
+        #       :item_id => @item1.id ,
+        #       :quantity => @po_quantity1 - 1 
+        #     })
+        #     
+        #     @po_entry1.should be_valid 
+        #   end
+        #   
+        #   it 'should not allow quantity update to be lower than the used quantity' do
+        #     @po_entry1.update_object( {
+        #       :item_id => @item1.id ,
+        #       :quantity => @pr_quantity2 - 1 
+        #     })
+        #     
+        #     @po_entry1.errors.size.should_not == 0 
+        #   end
+        #   
+        #   
+        #   
+        #  
+        #  # Second Branch : on delete  # can't delete the purchase order entry if there is purchase receival
+        #   it 'should not allow delete' do
+        #     @po_entry1.delete 
+        #     @po_entry1.reload
+        #     @po_entry1.persisted?.should be_true 
+        #   end
+        #   
+        #   
+        # end 
+        # 
+        # 
         
       end
     end

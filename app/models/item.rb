@@ -72,8 +72,8 @@ UPDATE ITEM STATISTIC
 =end
 
   def update_pending_receival
-    self.pending_receival = self.purchase_order_entries.where(:is_confirmed => true ).sum("quantity") - 
-    self.purchase_receival_entries.where(:is_confirmed => true ).sum("quantity")
+    self.pending_receival = self.purchase_order_entries.where(:is_confirmed => true, :is_deleted => false  ).sum("quantity") - 
+                            self.purchase_receival_entries.where(:is_confirmed => true, :is_deleted => false  ).sum("quantity")
     self.save 
   end
 end

@@ -18,24 +18,21 @@ class PurchaseReceivalEntry < ActiveRecord::Base
   validate :quantity_must_not_exceed_the_ordered_quantity
   validate :entry_uniqueness 
   
-  after_save :update_item_pending_receival, :update_purchase_order_entry_fulfilment_status, :update_item_statistics
-  after_destroy :update_item_pending_receival , :update_purchase_order_entry_fulfilment_status, :update_item_statistics
+  after_save :update_item_pending_receival, :update_purchase_order_entry_fulfilment_status #, :update_item_statistics
+  after_destroy :update_item_pending_receival , :update_purchase_order_entry_fulfilment_status # , :update_item_statistics
   
   def update_item_pending_receival
-    # puts "inside the update item pending receival"
-    return nil if not self.is_confirmed? 
-    # puts "Gonna execute update item pending receival"
     item = self.item 
     item.reload 
     item.update_pending_receival
   end
   
-  def update_item_statistics
-    return nil if not self.is_confirmed? 
-    item = self.item 
-    item.reload
-    item.update_ready_quantity
-  end
+  # def update_item_statistics
+  #   # return nil if not self.is_confirmed? 
+  #   item = self.item 
+  #   item.reload
+  #   item.update_ready_quantity
+  # end
   
   def update_purchase_order_entry_fulfilment_status
     purchase_order_entry = self.purchase_order_entry 
@@ -56,12 +53,22 @@ class PurchaseReceivalEntry < ActiveRecord::Base
     return nil if self.is_confirmed? 
     
     purchase_order_entry = self.purchase_order_entry 
-    received_quantity = purchase_order_entry.received_quantity
-    ordered_quantity = purchase_order_entry.quantity 
-    pending_receival = ordered_quantity - received_quantity
     
-    if  self.quantity > pending_receival 
-      errors.add(:quantity , "Max penerimaan untuk item dari purchase order ini: #{pending_receival}" )
+    pending_receival = purchase_order_entry.pending_receival
+    if not self.is_confirmed? 
+      if  self.quantity > pending_receival 
+        errors.add(:quantity , "Max penerimaan untuk item dari purchase order ini: #{pending_receival}" )
+      end
+    else
+      initial_received = StockMutation.where(
+        :source_document_entry => "PurchaseReceivalEntry",
+        :source_document_entry_id => self.id 
+      ).first 
+      
+      actual_pending_receival =  pending_receival + initial_received.quantity 
+      if  self.quantity > pending_receival + initial_received.quantity 
+        errors.add(:quantity , "Max penerimaan untuk item dari purchase order ini: #{actual_pending_receival}" )
+      end
     end
   end   
   
@@ -102,13 +109,7 @@ class PurchaseReceivalEntry < ActiveRecord::Base
     self.destroy 
   end
   
-  def post_confirm_delete 
-    StockMutation.where(
-      :source_document_entry_id => self.id,
-      :source_document_entry => self.class.to_s
-    ).each {|x| x.destroy }
-    self.destroy 
-  end
+ 
   
   
   
@@ -132,67 +133,24 @@ class PurchaseReceivalEntry < ActiveRecord::Base
   end
   
   def update_object( params ) 
-    if self.is_confirmed? 
-      # later on, put authorization 
-      ActiveRecord::Base.transaction do
-        self.post_confirm_update( params) 
-        return self
-      end 
-    end
-
-    purchase_order_entry = PurchaseOrderEntry.find_by_id params[:purchase_order_entry_id]    
-    self.purchase_order_entry_id = purchase_order_entry.id 
-    self.quantity                = params[:quantity]       
-    self.item_id                 = purchase_order_entry.item_id
+    
+      purchase_order_entry = PurchaseOrderEntry.find_by_id params[:purchase_order_entry_id]    
+      self.purchase_order_entry_id = purchase_order_entry.id 
+      self.quantity                = params[:quantity]       
+      self.item_id                 = purchase_order_entry.item_id
  
-    self.save 
+      
+      ActiveRecord::Base.transaction do
+        if self.save 
+          StockMutation.create_or_update_purchase_receival_stock_mutation( self ) if self.is_confirmed?
+        end
+      end
+   
+    
     return self 
   end
   
-  def post_confirm_update(  params)
-    
-    purchase_order_entry = PurchaseOrderEntry.find_by_id params[:purchase_order_entry_id]
-    old_purchase_order_entry = self.purchase_order_entry
-    
-    is_item_changed = false
-    is_quantity_changed = false
-    
-    
-    if params[:purchase_order_id] != self.purchase_order_entry_id
-      is_item_changed = true 
-    end
-    
-    if params[:purchase_order_id] == self.purchase_order_entry_id and 
-        params[:quantity] != self.quantity
-      is_quantity_changed = true 
-    end
-    
-    if  is_item_changed
-      self.purchase_order_entry_id = params[:purchase_order_entry_id]
-      self.item_id                 = purchase_order_entry.item_id
-      self.quantity                = params[:quantity]
-      purchase_receival_entry_count = PurchaseReceivalEntry.where(
-        :purchase_order_entry_id => self.purchase_order_entry_id,
-        :purchase_receival_id => self.purchase_receival.id  
-      ).count
-
-      self.save 
-      return self if self.errors.size != 0 
-    end
-    
-    if is_quantity_changed
-      self.quantity                = params[:quantity]
-      self.save
-    end
-    
-    
-    stock_mutation.purchase_receival_change_item( self )  if not self.stock_mutation.nil?
-    
-    if purchase_order_entry.id != old_purchase_order_entry.id 
-      old_purchase_order_entry.reload 
-      old_purchase_order_entry.update_fulfillment_status
-    end
-  end
+  
   
   def generate_code
     start_datetime = Date.today.at_beginning_of_month.to_datetime
@@ -235,7 +193,8 @@ class PurchaseReceivalEntry < ActiveRecord::Base
     
     # create  stock_entry and the associated stock mutation 
     # StockEntry.generate_purchase_receival_stock_entry( self  ) 
-    StockMutation.generate_purchase_receival_stock_mutation( self  ) 
+    # StockMutation.generate_purchase_receival_stock_mutation( self  ) 
+    StockMutation.create_or_update_purchase_receival_stock_mutation( self ) 
   end
   
   def parent_document

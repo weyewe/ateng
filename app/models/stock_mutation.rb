@@ -166,35 +166,36 @@ class StockMutation < ActiveRecord::Base
     end
   end
   
-  
-  def StockMutation.generate_purchase_receival_stock_mutation( purchase_receival_entry  ) 
+  def self.create_or_update_purchase_receival_stock_mutation( purchase_receival_entry ) 
+
     past_object = self.extract_past_object( purchase_receival_entry ) 
     
-    
-    if past_object.nil? 
+    if past_object.nil?
       new_object = self.new
       new_object.quantity                 = purchase_receival_entry.quantity
       new_object.source_document_entry_id = purchase_receival_entry.id 
-      new_object.source_document_id       = purchase_receival_entry.sales_order.id 
+      new_object.source_document_id       = purchase_receival_entry.parent_document.id
       new_object.source_document_entry    = purchase_receival_entry.class.to_s
-      new_object.source_document          = purchase_receival_entry.sales_order.class.to_s
-      new_object.item_id                  = purchase_receival_entry.entry_id 
+      new_object.source_document          = purchase_receival_entry.parent_document.class.to_s
+      new_object.item_id                  = purchase_receival_entry.item_id 
       new_object.mutation_case            = MUTATION_CASE[:purchase_receival] 
       new_object.mutation_status          = MUTATION_STATUS[:addition]
       
       if new_object.save 
-        stock_entry = StockEntry.create_object( new_object, purchase_receival_entry  ) 
+        stock_entry = StockEntry.create_object( purchase_receival_entry,  new_object   )
       end
+      
     else
-      past_object.quantity = sales_order_entry.quantity
-      past_object.item_id = sales_order_entry.entry_id 
+      past_object.quantity = purchase_receival_entry.quantity
+      past_object.item_id = purchase_receival_entry.item_id  
       
       if past_object.save 
-        stock_entry = StockEntry.update_object(   past_object, purchase_receival_entry ) 
+        StockEntry.update_object( stock_migration,   past_object ) 
       end
     end
- 
   end
+  
+ 
   
   
   
