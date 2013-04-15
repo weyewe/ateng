@@ -72,7 +72,7 @@ class StockMutation < ActiveRecord::Base
   
   def self.delete_object( document_entry ) 
     stock_mutation = self.extract_past_object( document_entry ) 
-    return nil if past_object.nil? 
+    return nil if stock_mutation.nil? 
     
     if    StockEntryMutation.item_focused_addition_mutation_cases.include?( stock_mutation.mutation_case ) 
       # update stock_entry creation is tough.. 
@@ -85,7 +85,7 @@ class StockMutation < ActiveRecord::Base
       StockEntry.delete_object( document_entry , stock_mutation ) 
     else
       item = stock_mutation.item 
-      StockEntryMutation.delete_object( stock_mutation, nil )   # inside this method, the associated stock_entries are refreshed
+      StockEntryMutation.delete_object( stock_mutation  )   # inside this method, the associated stock_entries are refreshed
       stock_mutation.destroy 
       item.update_ready_quantity 
     end

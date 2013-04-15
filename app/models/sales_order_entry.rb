@@ -56,6 +56,7 @@ class SalesOrderEntry < ActiveRecord::Base
   
   def post_confirm_update_constraint
     return nil if not self.is_confirmed? 
+    return nil if self.is_deleted? 
     # puts "********************** Gonna Execute post confirm \n"*10
     # if self.sales_return_entries.count != 0  and self.entry_case == SALES_ORDER_ENTRY_CASE[:item]
     #   
@@ -198,25 +199,28 @@ class SalesOrderEntry < ActiveRecord::Base
     end
   end
   
-  def delete
+  def delete_object
     if not self.is_confirmed?
       self.destroy 
       return nil 
     end
     
-    
+    return nil if self.is_deleted? 
     
     ActiveRecord::Base.transaction do
+      
+      self.is_deleted = true 
+      self.save
+      
       if self.is_product?  # for POS: auto deduct 
-        StockMutation.create_or_update_sales_stock_mutation( self ) 
+        StockMutation.delete_object( self ) 
       elsif self.is_service? 
         self.confirm_service_performed_and_deduct_stock 
         # ServicePerformed => commission to the employee responsible 
         # MaterialUsage => basis of stock deduction 
       end
 
-      self.is_deleted = true 
-      self.save
+      
     end
     
     

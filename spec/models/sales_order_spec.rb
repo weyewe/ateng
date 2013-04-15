@@ -428,7 +428,6 @@ describe SalesOrder do
             @initial_remaining_quantity3 = @stock_entry3.remaining_quantity
             @quantity_used_from_item1 = @so_entry1.quantity 
             
-            @quantity_to_be_used_from_item3 =  @quantity3 - 1 
             @so_entry1.delete_object
             
             @stock_entry1.reload
@@ -436,6 +435,22 @@ describe SalesOrder do
             @item1.reload
             @item3.reload
           end
+          
+          it 'should mark the so_entry1 as deleted' do
+            @so_entry1.is_deleted.should be_true
+          end
+          
+          it 'should   increase the remaining_quantity in stock_entry1' do
+            @final_remaining_quantity1 = @stock_entry1.remaining_quantity 
+            diff = @final_remaining_quantity1- @initial_remaining_quantity1
+            diff.should == @quantity_used_from_item1
+          end
+          
+          it 'should increase the item ready in item1' do
+            @final_item_ready1 = @item1.ready 
+            diff = @final_item_ready1 - @initial_item_ready1
+            diff.should == @quantity_used_from_item1
+          end 
         end
 
       end
