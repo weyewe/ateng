@@ -190,7 +190,7 @@ class StockMutation < ActiveRecord::Base
       past_object.item_id = purchase_receival_entry.item_id  
       
       if past_object.save 
-        StockEntry.update_object( stock_migration,   past_object ) 
+        StockEntry.update_object( purchase_receival_entry,   past_object ) 
       end
     end
   end

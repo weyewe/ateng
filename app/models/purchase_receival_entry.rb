@@ -50,7 +50,7 @@ class PurchaseReceivalEntry < ActiveRecord::Base
      
   def quantity_must_not_exceed_the_ordered_quantity
     return nil if self.purchase_order_entry.nil? 
-    return nil if self.is_confirmed? 
+    # return nil if self.is_confirmed? 
     
     purchase_order_entry = self.purchase_order_entry 
     
@@ -65,8 +65,12 @@ class PurchaseReceivalEntry < ActiveRecord::Base
         :source_document_entry_id => self.id 
       ).first 
       
+      return nil if initial_received.nil? 
+      
+      # puts "Inside the purchase_receival_entry, validation\n"*10
       actual_pending_receival =  pending_receival + initial_received.quantity 
-      if  self.quantity > pending_receival + initial_received.quantity 
+      # puts "actual_pending_receival: #{actual_pending_receival}"
+      if  self.quantity > actual_pending_receival
         errors.add(:quantity , "Max penerimaan untuk item dari purchase order ini: #{actual_pending_receival}" )
       end
     end

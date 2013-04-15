@@ -171,6 +171,12 @@ describe PurchaseReceival do
           :quantity => @pr_quantity1 
         })
         
+        @remaining_pending_receival2 = 5 
+        @pr_quantity2 = @po_quantity2 - @remaining_pending_receival2
+        @pr_entry2 = PurchaseReceivalEntry.create_object(  @pr, {
+          :purchase_order_entry_id => @po_entry2.id ,
+          :quantity => @pr_quantity2
+        })
    
         @pr.reload
         
@@ -186,6 +192,10 @@ describe PurchaseReceival do
         @item1.reload 
         @pr_entry1.reload
         # @pr_entry2.reload
+      end
+      
+      it 'should produce 2 pr_entries ' do
+        @pr.active_purchase_receival_entries.count.should == 2 
       end
       
       it 'should have confirmed the pr, pr_entry1 and 2 ' do
@@ -210,9 +220,39 @@ describe PurchaseReceival do
         @item1.stock_entries.count.should == 2  # 1 stock_migration and 1 for purchase_receival
       end
       
-      # update purchase receival
+      it 'should still preserve uniqueness' do
+        @pr_entry1.update_object({
+          :purchase_order_entry_id => @po_entry2.id ,
+          :quantity => 1
+        })
+        @pr_entry1.errors.size.should_not == 0 
+      end
       
-      context "update purchase_receival" do
+      
+      # update purchase receival
+      # POST CONFIRM UPDATE: update quantity 
+      it 'should  allow quantity update if it does not exceed  the available item' do
+        @pr_entry1.update_object({
+          :purchase_order_entry_id => @po_entry1.id ,
+          :quantity => @po_quantity1  - 1 
+        })
+        
+        @pr_entry1.errors.size.should == 0 
+      end
+      
+      it 'should not ALLOW quantity update if it exceeds the available item' do
+        # puts "======================\n"*10
+        
+        @pr_entry1.update_object({
+          :purchase_order_entry_id => @po_entry1.id ,
+          :quantity => @po_quantity1  + 1
+        })
+        
+        @pr_entry1.errors.size.should_not == 0
+        @pr_entry1.should_not be_valid 
+      end
+      
+      context "update purchase_receival: quantity expansion" do
         before(:each) do
         end
       end
