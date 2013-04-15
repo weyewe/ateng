@@ -255,7 +255,7 @@ class StockEntryMutation < ActiveRecord::Base
     if is_item_changed or is_quantity_changed
       stock_mutation.stock_entry_mutations.each {|x| x.destroy }
       affected_stock_entries.each {|x| x.update_remaining_quantity }
-      StockEntryMutation.create_object( stock_mutation  )
+      StockEntryMutation.create_object( stock_mutation , nil  )
     end
     
     if is_item_changed

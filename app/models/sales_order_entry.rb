@@ -6,9 +6,10 @@ class SalesOrderEntry < ActiveRecord::Base
   has_many :sales_return_entries 
   
   validate  :quantity_must_greater_than_zero, 
-            # :unit_price_must_be_greater_than_zero , # it is commented because we are inferring the unit price from the item
             :item_sales_object_entry_uniqueness ,
-            :discount_must_be_between_0_and_100
+            :discount_must_be_between_0_and_100,
+            
+            :post_confirm_update_constraint
             
   validates_presence_of :sales_order_id , :entry_id, :entry_case , :discount 
             
@@ -18,11 +19,6 @@ class SalesOrderEntry < ActiveRecord::Base
     end
   end
   
-  # def unit_price_must_be_greater_than_zero
-  #   if not unit_price.present? or unit_price <= BigDecimal('0') 
-  #     errors.add(:unit_price , "Harga harus lebih besar dari 0" )  
-  #   end
-  # end
   
   def item_sales_object_entry_uniqueness
     
@@ -32,12 +28,7 @@ class SalesOrderEntry < ActiveRecord::Base
     
     parent = self.sales_order 
     
-    # on update, this validation is called before_save 
-    # so, when we are searching, it won't be found out. 
-    # there is only 1 in the database. with this new shite. it is gonna be 2. 
-    
-    # but on create, this validation somewhow shows the data. NO.it is our fault
-    # in the create action, it calls 2 #CREATE action
+   
     sales_order_entry_count = SalesOrderEntry.where(
       :entry_id => self.entry_id,
       :entry_case => self.entry_case , 
@@ -63,6 +54,40 @@ class SalesOrderEntry < ActiveRecord::Base
     end
   end
   
+  def post_confirm_update_constraint
+    return nil if not self.is_confirmed? 
+    # puts "********************** Gonna Execute post confirm \n"*10
+    # if self.sales_return_entries.count != 0  and self.entry_case == SALES_ORDER_ENTRY_CASE[:item]
+    #   
+    #   # watch the stock_mutation 
+    #   
+    #   
+    #   
+    #   # if there is sales return, watch the max quantity 
+    #   total_returned = self.sales_return_entries.sum("quantity")
+    #   
+    #   if quantity < total_returned 
+    #     errors.add(:quantity , "Ada sales return dengan jumlah: #{total_returned}" ) 
+    #   end
+    # end
+    
+    if self.entry_case == SALES_ORDER_ENTRY_CASE[:item]
+      stock_mutation = StockMutation.where(
+        :source_document_entry => self.class.to_s,
+        :source_document_entry_id => self.id 
+      ).first
+      
+      item = stock_mutation.item 
+      current_quantity_usage  = stock_mutation.quantity 
+      actual_item_ready = item.ready + current_quantity_usage 
+     
+      
+      if actual_item_ready - quantity < 0 
+        errors.add(:quantity , "Kuantitas maksimum: #{actual_item_ready}" ) 
+      end
+    end
+  end
+  
   def self.create_object(  parent , params ) 
     new_object  = self.new 
     
@@ -85,26 +110,35 @@ class SalesOrderEntry < ActiveRecord::Base
   end
   
   def update_object( params ) 
-    # check if it is confirmed 
+    # if self.is_confirmed?
+    #   self.validate_post_confirm_update 
+    #   return self if self.errors.size != 0 
+    # end
     
     self.entry_id = params[:entry_id]
     if self.entry_case == SALES_ORDER_ENTRY_CASE[:item]
       self.quantity = params[:quantity]
+      # quantity for service, by default == 1 
     end
     
     self.discount = BigDecimal( params[:discount])
    
-    
     if self.save 
+      StockMutation.create_or_update_sales_stock_mutation( self ) if self.is_confirmed?
       self.assign_total_price 
       if self.entry_case == SALES_ORDER_ENTRY_CASE[:service]
         # delete the MaterialUsed and ServicePerformed 
       end
     end
     
-    
     return self 
   end
+  
+  def validate_post_confirm_update
+    
+  end
+  
+  
   
   def assign_total_price
     self.unit_price = self.sales_object.selling_price
@@ -133,8 +167,8 @@ class SalesOrderEntry < ActiveRecord::Base
   def confirm
     return nil if self.is_confirmed? 
     
-    if self.is_product?  # optimized for retail : auto deduct
-      self.deduct_stock 
+    if self.is_product?  # for POS: auto deduct 
+      StockMutation.create_or_update_sales_stock_mutation( self ) 
     elsif self.is_service? 
       self.confirm_service_performed_and_deduct_stock 
       # ServicePerformed => commission to the employee responsible 
@@ -146,13 +180,6 @@ class SalesOrderEntry < ActiveRecord::Base
     self.save 
   end
   
-  def deduct_stock
-    # what if there is no stock? => no deduction
-    StockMutation.create_or_update_sales_stock_mutation( self ) 
-    
-    # start with stock mutation, then , the stock mutation will distribute the deduction
-
-  end
    
   def confirm_service_performed_and_deduct_stock
     self.material_consumptions.each do |material_consumption|

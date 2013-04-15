@@ -178,7 +178,7 @@ class StockMutation < ActiveRecord::Base
       past_object.item_id = sales_order_entry.entry_id 
       
       if past_object.save 
-        StockEntryMutation.update_object(  past_object  ) 
+        StockEntryMutation.update_object(  past_object, nil   ) 
       end
     end
   end
