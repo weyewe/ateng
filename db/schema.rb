@@ -85,11 +85,13 @@ ActiveRecord::Schema.define(:version => 20130410025149) do
     t.string   "code"
     t.integer  "item_id"
     t.integer  "quantity"
-    t.boolean  "is_fulfilled",      :default => false
-    t.boolean  "is_confirmed",      :default => false
-    t.boolean  "is_deleted",        :default => false
-    t.datetime "created_at",                           :null => false
-    t.datetime "updated_at",                           :null => false
+    t.decimal  "unit_price",        :precision => 11, :scale => 2, :default => 0.0
+    t.decimal  "total_price",       :precision => 11, :scale => 2, :default => 0.0
+    t.boolean  "is_fulfilled",                                     :default => false
+    t.boolean  "is_confirmed",                                     :default => false
+    t.boolean  "is_deleted",                                       :default => false
+    t.datetime "created_at",                                                          :null => false
+    t.datetime "updated_at",                                                          :null => false
   end
 
   create_table "purchase_orders", :force => true do |t|
@@ -198,6 +200,8 @@ ActiveRecord::Schema.define(:version => 20130410025149) do
     t.integer  "quantity"
     t.integer  "item_id"
     t.integer  "remaining_quantity"
+    t.boolean  "is_prime",                                                :default => true
+    t.integer  "parent_stock_entry_id"
     t.boolean  "is_finished",                                             :default => false
     t.decimal  "base_price_per_piece",     :precision => 12, :scale => 2, :default => 0.0
     t.datetime "created_at",                                                                 :null => false
@@ -208,7 +212,7 @@ ActiveRecord::Schema.define(:version => 20130410025149) do
     t.integer  "stock_entry_id"
     t.integer  "stock_mutation_id"
     t.integer  "quantity"
-    t.integer  "case"
+    t.integer  "mutation_case"
     t.integer  "mutation_status",   :default => 2
     t.datetime "created_at",                       :null => false
     t.datetime "updated_at",                       :null => false

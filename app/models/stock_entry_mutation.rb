@@ -1,6 +1,6 @@
 class StockEntryMutation < ActiveRecord::Base
   attr_accessible :stock_entry_id, :stock_mutation_id, :quantity , 
-                  :case, :mutation_status
+                  :mutation_case, :mutation_status
                   
   belongs_to :stock_entry
   belongs_to :stock_mutation 
@@ -11,11 +11,7 @@ class StockEntryMutation < ActiveRecord::Base
   end
  
   def self.creation_mutation_cases
-    return [
-        MUTATION_CASE[:purchase_receival], # on the usage case 
-        MUTATION_CASE[:stock_adjustment_addition], # on the usage case 
-        MUTATION_CASE[:stock_conversion_target] 
-      ]
+    return  self.item_focused_addition_mutation_cases
   end
   
   def self.item_focused_consumption_mutation_cases
@@ -31,6 +27,7 @@ class StockEntryMutation < ActiveRecord::Base
   
   def self.item_focused_addition_mutation_cases
     return [
+        MUTATION_CASE[:stock_migration],
         MUTATION_CASE[:purchase_receival],
         MUTATION_CASE[:stock_conversion_target],
         MUTATION_CASE[:stock_adjustment_addition]  
@@ -71,9 +68,9 @@ class StockEntryMutation < ActiveRecord::Base
   
 
   def self.create_object( stock_mutation , stock_entry) 
-    if    self.item_focused_addition_mutation_cases.includes?( stock_mutation.mutation_case ) 
+    if    self.item_focused_addition_mutation_cases.include?( stock_mutation.mutation_case ) 
       self.create_addition_object(   stock_mutation, stock_entry) 
-    elsif self.item_focused_consumption_mutation_cases.includes?( stock_mutation.mutation_case ) 
+    elsif self.item_focused_consumption_mutation_cases.include?( stock_mutation.mutation_case ) 
       self.create_consumption_object( stock_mutation  ) 
     elsif MUTATION_CASE[:purchase_return] == stock_mutation.mutation_case
       self.create_purchase_return_object( stock_mutation  )
@@ -82,12 +79,14 @@ class StockEntryMutation < ActiveRecord::Base
     end  
   end
   
+  
+  
   def self.create_addition_object( stock_mutation , stock_entry )
     StockEntryMutation.create(
       :stock_entry_id => stock_entry.id , 
       :stock_mutation_id => stock_mutation.id ,
       :quantity =>  stock_entry.quantity ,
-      :case => stock_mutation.mutation_case  ,  
+      :mutation_case => stock_mutation.mutation_case  ,  
       :mutation_status =>  stock_mutation.mutation_status
     )
     
@@ -113,7 +112,7 @@ class StockEntryMutation < ActiveRecord::Base
         :stock_entry_id => stock_entry.id , 
         :stock_mutation_id => stock_mutation.id ,
         :quantity =>  consumed_quantity ,
-        :case => stock_mutation.mutation_case  ,  
+        :mutation_case => stock_mutation.mutation_case  ,  
         :mutation_status =>  stock_mutation.mutation_status
       )
       
@@ -153,7 +152,7 @@ class StockEntryMutation < ActiveRecord::Base
         :stock_entry_id => stock_entry.id , 
         :stock_mutation_id => stock_mutation.id ,
         :quantity =>  returned_quantity ,
-        :case => stock_mutation.mutation_case  ,  
+        :mutation_case => stock_mutation.mutation_case  ,  
         :mutation_status =>  stock_mutation.mutation_status
       )
       
@@ -206,7 +205,7 @@ class StockEntryMutation < ActiveRecord::Base
         :stock_entry_id => stock_entry.id , 
         :stock_mutation_id => stock_mutation.id ,
         :quantity =>  purchase_return_quantity ,
-        :case => stock_mutation.mutation_case  ,  
+        :mutation_case => stock_mutation.mutation_case  ,  
         :mutation_status =>  stock_mutation.mutation_status
       )
       
@@ -215,6 +214,54 @@ class StockEntryMutation < ActiveRecord::Base
     end
     
     item.update_ready_quantity 
+  end
+  
+  
+=begin
+  FOR UPDATing the stock_entry_mutation 
+=end
+  
+  def self.update_object( stock_mutation , stock_entry ) 
+    if    self.item_focused_addition_mutation_cases.include?( stock_mutation.mutation_case ) 
+      self.update_addition_object(   stock_mutation, stock_entry) 
+    elsif self.item_focused_consumption_mutation_cases.include?( stock_mutation.mutation_case ) 
+      self.update_consumption_object( stock_mutation  ) 
+    elsif MUTATION_CASE[:purchase_return] == stock_mutation.mutation_case
+      self.update_purchase_return_object( stock_mutation  )
+    elsif MUTATION_CASE[:sales_return] == stock_mutation.mutation_case 
+      self.update_sales_return_object( stock_mutation ) 
+    end
+  end
+  
+  def self.update_addition_object( stock_mutation, stock_entry ) 
+    stock_entry_mutation = StockEntryMutation.where{
+      (mutation_case.in StockEntryMutation.creation_mutation_cases) & 
+      (mutation_status.eq MUTATION_STATUS[:addition]) & 
+      ( stock_entry_id.eq stock_entry.id )
+    }.first
+    
+    stock_entry_mutation.quantity  = stock_mutation.quantity  
+    stock_entry_mutation.save
+  end
+  
+  def self.update_consumption_object( stock_mutation ) 
+    affected_stock_entries = stock_mutation.stock_entries
+    first_stock_entry  = affected_stock_entries.first 
+    is_item_changed     = ( first_stock_entry.item_id != stock_mutation.item_id)? true : false 
+    is_quantity_changed = ( first_stock_entry.quantity != stock_mutation.quantity)? true : false 
+    
+    
+    
+    if is_item_changed or is_quantity_changed
+      stock_mutation.stock_entry_mutations.each {|x| x.destroy }
+      affected_stock_entries.each {|x| x.update_remaining_quantity }
+      StockEntryMutation.create_object( stock_mutation  )
+    end
+    
+    if is_item_changed
+      old_item = first_stock_entry.item 
+      old_item.update_ready_quantity
+    end
   end
   
   

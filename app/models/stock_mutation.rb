@@ -98,7 +98,7 @@ class StockMutation < ActiveRecord::Base
         :stock_entry_id    => stock_entry.id , 
         :stock_mutation_id => new_object.id ,
         :quantity          =>  new_object.quantity ,
-        :case              => mutation_case,  
+        :mutation_case              => mutation_case,  
         :mutation_status   =>  mutation_status 
       ) 
     end
@@ -134,7 +134,6 @@ class StockMutation < ActiveRecord::Base
       
       if new_object.save 
         stock_entry = StockEntry.create_object( stock_migration,  new_object   )
-        
       end
       
     else
@@ -145,8 +144,8 @@ class StockMutation < ActiveRecord::Base
       past_object.item_id = stock_migration.item_id 
       
       if past_object.save 
-        stock_entry = StockEntry.update_object( stock_migration,   past_object , initial_quantity, initial_item  ) 
-        StockEntryMutation.update_object( stock_entry, new_object )
+        stock_entry = StockEntry.update_object( stock_migration,   past_object ) 
+        # StockEntryMutation.update_object( stock_entry, new_object )
       end
     end
   end
@@ -156,7 +155,7 @@ class StockMutation < ActiveRecord::Base
     past_object = self.where(
       :source_document_entry => sales_order_entry.class.to_s,
       :source_document_entry_id => sales_order_entry.id,
-      :mutation_case => MUTATION_CASE[:sales_item],
+      :mutation_case => MUTATION_CASE[:sales_item_usage],
       :mutation_status => MUTATION_STATUS[:deduction]
     ).first 
     
@@ -168,18 +167,18 @@ class StockMutation < ActiveRecord::Base
       new_object.source_document_entry    = sales_order_entry.class.to_s
       new_object.source_document          = sales_order_entry.sales_order.class.to_s
       new_object.item_id                  = sales_order_entry.entry_id 
-      new_object.mutation_case            = MUTATION_CASE[:sales_item] 
+      new_object.mutation_case            = MUTATION_CASE[:sales_item_usage] 
       new_object.mutation_status          = MUTATION_STATUS[:deduction]
       
       if new_object.save 
-        StockEntryMutation.create_consumption( new_object )
+        StockEntryMutation.create_object( new_object , nil ) 
       end
     else
       past_object.quantity = sales_order_entry.quantity
       past_object.item_id = sales_order_entry.entry_id 
       
       if past_object.save 
-        StockEntryMutation.update_consumption(  past_object  ) 
+        StockEntryMutation.update_object(  past_object  ) 
       end
     end
   end

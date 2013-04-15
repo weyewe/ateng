@@ -149,8 +149,6 @@ describe StockMigration do
       
       stock_entry_mutation.should be_valid 
       
-      stock_entry.creation_stock_mutation.should be_valid 
-      stock_entry.creation_stock_mutation.id.should == stock_mutation.id 
     end
     
     it 'should update the item_ready quantity and inventory_value of the item' do
@@ -167,54 +165,111 @@ describe StockMigration do
       stock_entry.remaining_quantity.should == @quantity 
     end
     
-    context "update post confirm" do
+    
+    # the update come in 3 parts
+    # update only item => will automatically update the quantity and base price
+    # update only quantity => will automatically update the quantity and base price 
+    # update only base_price => will not change the item. Will only re calculate the inventory cost and CoGS
+      
+      # can't update item in stock_migration 
+    context "update post confirm: quantity contraction" do
       before(:each) do
         @item.reload
         @stock_migration.reload 
-        
+
         @new_average_cost = '150000'
         @new_quantity = 3
-        
+
         @stock_migration.update_object(  {
           :quantity => @new_quantity,
-          :average_cost => @new_average_cost 
-        } )
+          :average_cost => @stock_migration.average_cost  
+          } )
         @item.reload
         @stock_migration.reload 
       end
-      
+     
       it 'should be valid update' do
         @stock_migration.errors.size.should == 0 
       end
-      
+
       it 'should change the quantity in stock_entry, stock_mutation, stock_entry_mutation' do
         stock_entry = StockEntry.where(
-          :source_document_entry_id => @stock_migration.id, 
-          :source_document_entry => @stock_migration.class.to_s
+        :source_document_entry_id => @stock_migration.id, 
+        :source_document_entry => @stock_migration.class.to_s
         ).first 
         stock_entry.quantity.should == @new_quantity 
         stock_entry.remaining_quantity.should == @new_quantity 
 
         stock_mutation = StockMutation.where(
-          :source_document_entry => @stock_migration.class.to_s, 
-          :source_document_entry_id => @stock_migration.id 
+        :source_document_entry => @stock_migration.class.to_s, 
+        :source_document_entry_id => @stock_migration.id 
         ).first 
         stock_mutation.quantity.should == @new_quantity 
 
         stock_entry_mutation = StockEntryMutation.where(
-          :stock_entry_id    => stock_entry.id , 
-          :stock_mutation_id => stock_mutation.id  
+        :stock_entry_id    => stock_entry.id , 
+        :stock_mutation_id => stock_mutation.id  
         ).first
         stock_entry_mutation.quantity.should == @new_quantity 
       end
-      
-      
+     
+     
       it 'should change the item_ready quantity' do
         @item.ready.should == @new_quantity 
       end
       it 'should change the inventory_value'
     end
     
+    context "update post confirm: quantity expansion" do
+      before(:each) do
+        @item.reload
+        @stock_migration.reload 
+
+        @new_average_cost = '150000'
+        @new_quantity = @stock_migration.quantity + 10  
+
+        @stock_migration.update_object(  {
+          :quantity => @new_quantity,
+          :average_cost => @stock_migration.average_cost  
+          } )
+        @item.reload
+        @stock_migration.reload 
+      end
+     
+      it 'should be valid update' do
+        @stock_migration.errors.size.should == 0 
+      end
+
+      it 'should change the quantity in stock_entry, stock_mutation, stock_entry_mutation' do
+        stock_entry = StockEntry.where(
+        :source_document_entry_id => @stock_migration.id, 
+        :source_document_entry => @stock_migration.class.to_s
+        ).first 
+        stock_entry.quantity.should == @new_quantity 
+        stock_entry.remaining_quantity.should == @new_quantity 
+
+        stock_mutation = StockMutation.where(
+        :source_document_entry => @stock_migration.class.to_s, 
+        :source_document_entry_id => @stock_migration.id 
+        ).first 
+        stock_mutation.quantity.should == @new_quantity 
+
+        stock_entry_mutation = StockEntryMutation.where(
+        :stock_entry_id    => stock_entry.id , 
+        :stock_mutation_id => stock_mutation.id  
+        ).first
+        stock_entry_mutation.quantity.should == @new_quantity 
+      end
+     
+     
+      it 'should change the item_ready quantity' do
+        @item.ready.should == @new_quantity 
+      end
+      it 'should change the inventory_value'
+    end
+    
+    
+   
     
     # we need to test the shifting!!! 
     # steps
@@ -235,4 +290,6 @@ describe StockMigration do
       end
     end
   end
+    
+  
 end

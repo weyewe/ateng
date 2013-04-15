@@ -5,7 +5,7 @@ class CreateStockEntryMutations < ActiveRecord::Migration
       t.integer :stock_mutation_id 
       
       t.integer :quantity 
-      t.integer :case 
+      t.integer :mutation_case 
       
       t.integer :mutation_status, :default => MUTATION_STATUS[:addition]
       

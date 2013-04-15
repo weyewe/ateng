@@ -47,7 +47,7 @@ class StockEntry < ActiveRecord::Base
   def operational_usage_stock_entry_mutations
 
     self.stock_entry_mutations.where{
-      ( case.not_in StockEntryMutation.creation_mutation_cases )  & 
+      ( mutation_case.not_in StockEntryMutation.creation_mutation_cases )  & 
       ( mutation_status.eq MUTATION_STATUS[:deduction] )
     }.order("id DESC")
   end
@@ -69,7 +69,7 @@ class StockEntry < ActiveRecord::Base
     item                 = self.extract_item( document_entry ) 
 
     new_object                          = self.new 
-    new_object.item_id                  = item_id
+    new_object.item_id                  = item.id 
     new_object.quantity                 = quantity
     new_object.base_price_per_piece     = base_price_per_piece
     
@@ -79,48 +79,88 @@ class StockEntry < ActiveRecord::Base
     new_object.source_document_entry_id = document_entry.id
     
     if new_object.save
-      StockEntryMutation.create_object(  stock_mutation , stock_entry )
+      StockEntryMutation.create_object(  stock_mutation , new_object )
     end
     
-    return new_object 
+    return new_object.reload 
   end
   
-  def update_object( document_entry,   stock_mutation , initial_quantity, initial_item , initial_base_price )
+  def self.update_object( document_entry,   stock_mutation   )
+    stock_entry = StockEntry.where(
+      :source_document_entry_id => document_entry.id, 
+      :source_document_entry => document_entry.class.to_s 
+    ).first 
+    
+    initial_quantity = stock_entry.quantity 
+    initial_item = stock_entry.item 
+    initial_base_price_per_piece = stock_entry.base_price_per_piece
+    
+    
     quantity             = StockEntry.extract_quantity( document_entry ) 
     base_price_per_piece = StockEntry.extract_base_price_per_price( document_entry )
     item                 = StockEntry.extract_item( document_entry )
     
     is_item_changed       =   (item.id != initial_item.id   )?  true : false 
     is_quantity_changed   =   (quantity != initial_quantity )? true : false 
-    is_base_price_changed =   (base_price_per_piece != initial_base_price )? true : false 
+    is_base_price_changed =   (base_price_per_piece != initial_base_price_per_piece )? true : false 
     
-    if is_item_changed? 
-      self.item_id = item.id 
-      self.quantity = quantity 
-      self.base_price_per_piece = base_price_per_piece
-      self.save
+    if is_item_changed
+      re_mapped_stock_mutation_list = stock_entry.stock_mutations 
       
-      re_mapped_stock_mutation_list = self.stock_mutations 
+      stock_entry.item_id = item.id 
+      stock_entry.quantity = quantity 
+      stock_entry.base_price_per_piece = base_price_per_piece
+      stock_entry.save
       
-      StockEntryMutation.delete_object( stock_mutation , self )  
+      StockEntryMutation.delete_object( stock_mutation , stock_entry )  
       
       re_mapped_stock_mutation_list.each do |stock_mutation|
-        StockEntryMutation.create_object( stock_mutation , self  )
+        StockEntryMutation.create_object( stock_mutation , stock_entry  )
       end
       
       initial_item.update_ready_quantity 
       # we need to update the Inventory Price, because base price per piece is changed
       
     elsif not is_item_changed and is_quantity_changed 
-       # delete the stock_entry_mutation
-       # update the stock_entries involved => update remaining quantity 
-       # 
+      diff = quantity - initial_quantity 
+      
+      # stock_entry.creation_stock_entry_mutation.quantity = quantity 
+      # stock_entry_mutation  = stock_entry.creation_stock_entry_mutation 
+      # stock_entry_mutation.quantity  = quantity 
+      # stock_entry_mutation.save 
+      # stock_entry.update_creation_stock_entry_mutation( quantity ) 
+      StockEntryMutation.update_object( stock_mutation, stock_entry ) 
+      if diff > 0 # expansion
+        stock_entry.base_price_per_piece = base_price_per_piece 
+        stock_entry.quantity = quantity
+        stock_entry.save 
+        
+        stock_entry.update_remaining_quantity
+      else # contraction
+        stock_entry.quantity = quantity
+        stock_entry.base_price_per_piece = base_price_per_piece 
+        stock_entry.save 
+        stock_entry.shift_usage(  diff.abs  ) # the update_remaining_quantity is handled by the shift usage
+        stock_entry.update_remaining_quantity 
+      end
+      
+      item.update_ready_quantity 
     elsif not is_item_changed and not is_quantity_changed and is_base_price_changed 
+      stock_entry.base_price_per_piece = base_price_per_piece 
+      stock_entry.save
       # only recalculate the base price 
+      # item.update_inventory_price
     end
   end
   
   def delete_object
+  end
+  
+   
+  def update_creation_stock_entry_mutation( quantity )
+    stock_entry_mutation  = self.creation_stock_entry_mutation 
+    stock_entry_mutation.quantity  = quantity 
+    stock_entry_mutation.save
   end
    
    
@@ -282,7 +322,7 @@ class StockEntry < ActiveRecord::Base
     stock_mutation_id_to_be_re_map_list = []
     self.stock_entry_mutations.
             where(
-              :case => StockEntryMutation.item_focused_consumption_mutation_cases , 
+              :mutation_case => StockEntryMutation.item_focused_consumption_mutation_cases , 
               :mutation_status => MUTATION_STATUS[:deduction]).
             order("id DESC").each do |sem|
       # for all stock_entry_mutation, get the stock_entry_mutation to be shifted
@@ -343,17 +383,29 @@ class StockEntry < ActiveRecord::Base
     if document_entry.class.to_s == "PurchaseReceivalEntry"
       return document_entry.quantity 
     end
+    
+    if document_entry.class.to_s == "StockMigration"
+      return document_entry.quantity
+    end
   end
   
-  def self.extract_base_price_per_piece( document_entry ) 
+  def self.extract_base_price_per_price( document_entry ) 
     if document_entry.class.to_s == "PurchaseReceivalEntry"
       return document_entry.purchase_order_entry.unit_price 
+    end
+    
+    if document_entry.class.to_s == "StockMigration"
+      return document_entry.average_cost
     end
   end
   
   def self.extract_item( document_entry ) 
-    if document_entry.class.to_s = 'PurchaseReceivalEntry'
+    if document_entry.class.to_s == 'PurchaseReceivalEntry'
       return document_entry.purchase_order_entry.item 
+    end
+    
+    if document_entry.class.to_s == 'StockMigration'
+      return document_entry.item 
     end
   end
    
@@ -361,6 +413,16 @@ class StockEntry < ActiveRecord::Base
     StockEntry.where(:is_finished => false, :item_id => item.id ).order('id ASC').first
   end
   
+  
+  # def creation_stock_entry_mutation
+  #   se = self 
+  #   StockEntryMutation.where{
+  #     (mutation_case.in StockEntryMutation.creation_mutation_cases) & 
+  #     (mutation_status.eq MUTATION_STATUS[:addition]) & 
+  #     ( stock_entry_id.eq se.id )
+  #   }.first 
+  # end
+  # 
   
   
 end

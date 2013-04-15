@@ -249,147 +249,147 @@ describe SalesOrder do
       
       
       
-      
-      
-      context "confirm sales order" do
-        before(:each) do
-          @so.reload
-          @item1.reload
-          @item2.reload 
-          @so_entry1.reload
-          @so_entry2.reload
-          # @initial_pending_delivery1 = @item1.pending_delivery
-          # @initial_pending_delivery2 = @item2.pending_delivery
-          @initial_ready = @item1.ready 
-          @stock_entry1.reload
-          @stock_entry2.reload 
-          @initial_remaining_quantity1 = @stock_entry1.remaining_quantity 
-          @initial_remaining_quantity2 = @stock_entry2.remaining_quantity 
-          
-          @so.confirm 
-          @item1.reload
-          @item2.reload 
-          @so_entry1.reload
-          @so_entry2.reload
-          @stock_entry1.reload 
-          @stock_entry2.reload 
-        end
-        
-        it 'should confirm the so and its entries' do
-          @so.is_confirmed.should be_true 
-          @so_entry1.is_confirmed.should be_true 
-          @so_entry2.is_confirmed.should be_true 
-        end
-        
-        it 'should deduct the item ready quantity' do
-          @final_ready = @item1.ready 
-          diff = @initial_ready - @final_ready 
-          diff.should == @so_quantity1 
-        end
-        
-        it 'should deduct the stock_entry remaining quantity' do
-          # in this case, for the so_entry1, we designed that the 
-          # => sales quantity is less than the remaining_quantity in stock migration
-          @final_remaining_quantity1 = @stock_entry1.remaining_quantity
-          @diff = @initial_remaining_quantity1 - @final_remaining_quantity1 
-          @diff.should == @so_quantity1  
-        end
-        
-        it 'should deduct the stock_entry remaining quantity. If it is finished, is_finished is set to be true' do
-          # in this case, for the so_entry2, we designed that the
-          # => sales_quantity is equal to the remaining quantity in stock_migration
-          @final_remaining_quantity2 = @stock_entry2.remaining_quantity
-          @diff = @initial_remaining_quantity2 - @final_remaining_quantity2
-          @diff.should == @so_quantity2
-          @stock_entry2.is_finished.should be_true 
-          @stock_entry2.remaining_quantity.should == 0 
-        end
-        
-        # it 'should update the pending delivery' do
-        #   @final_pending_delivery1 = @item1.pending_delivery
-        #   @final_pending_delivery2 = @item2.pending_delivery
-        #   
-        #   diff1 = @final_pending_delivery1 - @initial_pending_delivery1 
-        #   diff2 = @final_pending_delivery2 - @initial_pending_delivery2 
-        #   diff1.should == @so_quantity1 
-        #   diff2.should == @so_quantity2 
-        # end
-        
-        # FIRST BRANCH: update post confirm 
-        # it 'should preserve entry uniqueness post confirm' do
-        #   @so_entry1.update_object(  {
-        #     :item_id => @item2.id,
-        #     :quantity => 15
-        #   })
-        #   @so_entry1.should_not be_valid 
-        # end
-        
-        # it 'should allow item change update' do
-        #   @item1.reload
-        #   @item3.reload
-        #   
-        #   initial_so1_quantity = @so_entry1.quantity 
-        #   initial_pending_delivery1 = @item1.pending_delivery 
-        #   initial_pending_delivery3 = @item3.pending_delivery
-        #   @so_entry1.update_object(  {
-        #     :item_id => @item3.id,
-        #     :quantity => @so_quantity1  
-        #   })
-        #   @so_entry1.should be_valid 
-        #   
-        #   
-        #   @item1.reload
-        #   @item3.reload 
-        #   
-        #   final_pending_delivery1 = @item1.pending_delivery
-        #   final_pending_delivery3 = @item3.pending_delivery
-        #   
-        #   diff1 = initial_pending_delivery1  - final_pending_delivery1 
-        #   diff1.should == initial_so1_quantity
-        #   
-        #   diff3 = final_pending_delivery3 - initial_pending_delivery3
-        #   diff3.should == @so_quantity1
-        # end
-        
-        # it 'should  allow quantity update => change pending delivery' do
-        #   @extra_diff = 5 
-        #   initial_pending_delivery = @item1.pending_delivery
-        #   @so_entry1.update_object(  {
-        #     :item_id => @item1.id,
-        #     :quantity => @so_quantity1 + @extra_diff 
-        #   })
-        #   @so_entry1.should be_valid 
-        #   
-        #   
-        #   @item1.reload
-        #   final_pending_delivery = @item1.pending_delivery
-        #   diff = final_pending_delivery - initial_pending_delivery
-        #   diff.should == @extra_diff
-        #   
-        # end
-        
-        # SECOND BRANCH: delete post confirm 
-        
-        # it 'should allow deletion' do
-        #   initial_pending_delivery1 = @item1.pending_delivery
-        #   quantity = @so_entry1.quantity 
-        #   @so_entry1.delete(@admin)
-        #   
-        #   @item1.reload 
-        #   final_pending_delivery1 = @item1.pending_delivery
-        #   
-        #   diff =  initial_pending_delivery1 - final_pending_delivery1 
-        #   diff.should == quantity 
-        #   
-        #   @so_entry1.persisted?.should be_false 
-        # end
-        # 
-        # context "coupled has takes place (in this case: Delivery)" do
-        # end
-        
-      end
-          
-    
+      # 
+      # 
+      # context "confirm sales order" do
+      #   before(:each) do
+      #     @so.reload
+      #     @item1.reload
+      #     @item2.reload 
+      #     @so_entry1.reload
+      #     @so_entry2.reload
+      #     # @initial_pending_delivery1 = @item1.pending_delivery
+      #     # @initial_pending_delivery2 = @item2.pending_delivery
+      #     @initial_ready = @item1.ready 
+      #     @stock_entry1.reload
+      #     @stock_entry2.reload 
+      #     @initial_remaining_quantity1 = @stock_entry1.remaining_quantity 
+      #     @initial_remaining_quantity2 = @stock_entry2.remaining_quantity 
+      #     
+      #     @so.confirm 
+      #     @item1.reload
+      #     @item2.reload 
+      #     @so_entry1.reload
+      #     @so_entry2.reload
+      #     @stock_entry1.reload 
+      #     @stock_entry2.reload 
+      #   end
+      #   
+      #   it 'should confirm the so and its entries' do
+      #     @so.is_confirmed.should be_true 
+      #     @so_entry1.is_confirmed.should be_true 
+      #     @so_entry2.is_confirmed.should be_true 
+      #   end
+      #   
+      #   it 'should deduct the item ready quantity' do
+      #     @final_ready = @item1.ready 
+      #     diff = @initial_ready - @final_ready 
+      #     diff.should == @so_quantity1 
+      #   end
+      #   
+      #   it 'should deduct the stock_entry remaining quantity' do
+      #     # in this case, for the so_entry1, we designed that the 
+      #     # => sales quantity is less than the remaining_quantity in stock migration
+      #     @final_remaining_quantity1 = @stock_entry1.remaining_quantity
+      #     @diff = @initial_remaining_quantity1 - @final_remaining_quantity1 
+      #     @diff.should == @so_quantity1  
+      #   end
+      #   
+      #   it 'should deduct the stock_entry remaining quantity. If it is finished, is_finished is set to be true' do
+      #     # in this case, for the so_entry2, we designed that the
+      #     # => sales_quantity is equal to the remaining quantity in stock_migration
+      #     @final_remaining_quantity2 = @stock_entry2.remaining_quantity
+      #     @diff = @initial_remaining_quantity2 - @final_remaining_quantity2
+      #     @diff.should == @so_quantity2
+      #     @stock_entry2.is_finished.should be_true 
+      #     @stock_entry2.remaining_quantity.should == 0 
+      #   end
+      #   
+      #   # it 'should update the pending delivery' do
+      #   #   @final_pending_delivery1 = @item1.pending_delivery
+      #   #   @final_pending_delivery2 = @item2.pending_delivery
+      #   #   
+      #   #   diff1 = @final_pending_delivery1 - @initial_pending_delivery1 
+      #   #   diff2 = @final_pending_delivery2 - @initial_pending_delivery2 
+      #   #   diff1.should == @so_quantity1 
+      #   #   diff2.should == @so_quantity2 
+      #   # end
+      #   
+      #   # FIRST BRANCH: update post confirm 
+      #   # it 'should preserve entry uniqueness post confirm' do
+      #   #   @so_entry1.update_object(  {
+      #   #     :item_id => @item2.id,
+      #   #     :quantity => 15
+      #   #   })
+      #   #   @so_entry1.should_not be_valid 
+      #   # end
+      #   
+      #   # it 'should allow item change update' do
+      #   #   @item1.reload
+      #   #   @item3.reload
+      #   #   
+      #   #   initial_so1_quantity = @so_entry1.quantity 
+      #   #   initial_pending_delivery1 = @item1.pending_delivery 
+      #   #   initial_pending_delivery3 = @item3.pending_delivery
+      #   #   @so_entry1.update_object(  {
+      #   #     :item_id => @item3.id,
+      #   #     :quantity => @so_quantity1  
+      #   #   })
+      #   #   @so_entry1.should be_valid 
+      #   #   
+      #   #   
+      #   #   @item1.reload
+      #   #   @item3.reload 
+      #   #   
+      #   #   final_pending_delivery1 = @item1.pending_delivery
+      #   #   final_pending_delivery3 = @item3.pending_delivery
+      #   #   
+      #   #   diff1 = initial_pending_delivery1  - final_pending_delivery1 
+      #   #   diff1.should == initial_so1_quantity
+      #   #   
+      #   #   diff3 = final_pending_delivery3 - initial_pending_delivery3
+      #   #   diff3.should == @so_quantity1
+      #   # end
+      #   
+      #   # it 'should  allow quantity update => change pending delivery' do
+      #   #   @extra_diff = 5 
+      #   #   initial_pending_delivery = @item1.pending_delivery
+      #   #   @so_entry1.update_object(  {
+      #   #     :item_id => @item1.id,
+      #   #     :quantity => @so_quantity1 + @extra_diff 
+      #   #   })
+      #   #   @so_entry1.should be_valid 
+      #   #   
+      #   #   
+      #   #   @item1.reload
+      #   #   final_pending_delivery = @item1.pending_delivery
+      #   #   diff = final_pending_delivery - initial_pending_delivery
+      #   #   diff.should == @extra_diff
+      #   #   
+      #   # end
+      #   
+      #   # SECOND BRANCH: delete post confirm 
+      #   
+      #   # it 'should allow deletion' do
+      #   #   initial_pending_delivery1 = @item1.pending_delivery
+      #   #   quantity = @so_entry1.quantity 
+      #   #   @so_entry1.delete(@admin)
+      #   #   
+      #   #   @item1.reload 
+      #   #   final_pending_delivery1 = @item1.pending_delivery
+      #   #   
+      #   #   diff =  initial_pending_delivery1 - final_pending_delivery1 
+      #   #   diff.should == quantity 
+      #   #   
+      #   #   @so_entry1.persisted?.should be_false 
+      #   # end
+      #   # 
+      #   # context "coupled has takes place (in this case: Delivery)" do
+      #   # end
+      #   
+      # end
+      #     
+      #     
     
     end
   end
