@@ -459,6 +459,52 @@ describe PurchaseReceival do
       
       context "delete purchase receival" do
         before(:each) do
+          
+          @stock_entry = StockEntry.where(
+            :source_document_entry => @pr_entry1.class.to_s,
+            :source_document_entry_id => @pr_entry1.id 
+          ).first 
+          @stock_entry_id = @stock_entry.id 
+          @stock_mutation = StockMutation.where(
+            :source_document_entry => @pr_entry1.class.to_s,
+            :source_document_entry_id => @pr_entry1.id 
+          ).first
+          @stock_mutation_id = @stock_mutation.id 
+          
+          @quantity = @stock_entry.quantity 
+          @item1.reload
+          @initial_item_ready1 = @item1.ready 
+          @initial_stock_entries = @item1.stock_entries 
+          
+          @pr_entry1.delete_object
+          
+       
+          @item1.reload
+        end
+        
+        it 'should mark the po_entry1 as deleted' do
+          @pr_entry1.is_deleted.should be_true
+        end
+        
+        it 'should   reduce the item.ready' do
+          @final_item_ready1 = @item1.ready 
+          diff = @initial_item_ready1 - @final_item_ready1 
+          diff.should == @quantity
+        end
+        
+        it 'should delete the stock_entry' do 
+          StockEntry.find_by_id(@stock_entry_id).should be_nil 
+        end
+        
+        it 'should delete the stock_mutation' do
+          StockMutation.find_by_id(@stock_mutation_id).should be_nil
+        end
+        
+        it 'should delete all stock_entry_mutation' do
+          StockEntryMutation.where(
+            :stock_entry_id => @stock_entry_id, 
+            :stock_mutation_id => @stock_mutation_id
+          ).count.should == 0 
         end
       end
       # on delete purchase receival 

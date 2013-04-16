@@ -101,17 +101,26 @@ class PurchaseReceivalEntry < ActiveRecord::Base
     end
   end
      
-  def delete 
-    if self.is_confirmed?  
-      ActiveRecord::Base.transaction do
-        self.post_confirm_delete 
-        return 
-      end 
+  
+  
+  def delete_object
+    if not self.is_confirmed?
+      self.destroy 
+      return nil 
     end
     
+    return nil if self.is_deleted? 
     
-    self.destroy 
+    ActiveRecord::Base.transaction do
+      
+      self.is_deleted = true 
+      self.save
+      StockMutation.delete_object( self )  
+      
+    end
   end
+  
+  
   
  
   

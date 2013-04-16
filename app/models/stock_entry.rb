@@ -117,7 +117,7 @@ class StockEntry < ActiveRecord::Base
         StockEntryMutation.delete_object(stock_mutation)  
       end
       stock_entry.reload 
-      stock_entry.update_remaining_quantity
+      # stock_entry.update_remaining_quantity
       re_mapped_stock_mutation_list.each do |stock_mutation|
         StockEntryMutation.create_object( stock_mutation , stock_entry  )
       end
@@ -158,7 +158,7 @@ class StockEntry < ActiveRecord::Base
   def self.delete_object(document_entry, stock_mutation)
     stock_entry = StockEntry.where(
       :source_document_entry => stock_mutation.source_document_entry, 
-      :souce_document_entry_id => stock_mutation.source_document_entry_id 
+      :source_document_entry_id => stock_mutation.source_document_entry_id 
     ).first 
     
     item = stock_mutation.item 
