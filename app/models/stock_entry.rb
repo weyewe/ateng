@@ -357,30 +357,37 @@ class StockEntry < ActiveRecord::Base
       end
       
       stock_mutation_id_to_be_re_map_list << sem.stock_mutation_id 
+      # adjust if there is sales return
+      # must be moved together with the sales_item_usage 
+      stock_mutation   = sem.stock_mutation 
       if stock_mutation.mutation_case == MUTATION_CASE[:sales_item_usage]
-        sales_return_entry_id_list = SalesReturnEntry.
-                                      where(:sales_order_entry_id => stock_mutation.source_document_entry_id).
-                                      map{|x| x.id }
-                                      
-        StockMutation.where(
-          :source_document_entry => SalesReturnEntry.to_s,
-          :source_document_entry_id => sales_return_entry_id_list
-        ).each {|x| stock_mutation_id_to_be_re_map_list << x.id }
+        # sales_return_entry_id_list = SalesReturnEntry.
+        #                               where(:sales_order_entry_id => stock_mutation.source_document_entry_id).
+        #                               map{|x| x.id }
+        #                               
+        # StockMutation.where(
+        #   :source_document_entry => SalesReturnEntry.to_s,
+        #   :source_document_entry_id => sales_return_entry_id_list
+        # ).each {|x| stock_mutation_id_to_be_re_map_list << x.id }
       end
       
       quantity_to_be_shifted -= shifted_quantity
     end
     
     #  destroy the stock entry mutation. and refresh
-    related_stock_entry_id_list = [] 
-    StockEntryMutation.where(:stock_mutation_id => stock_mutation_id_to_be_re_map_list ).each do |sem|
-      related_stock_entry_id_list << sem.stock_entry_id 
-      sem.destroy 
+    StockMutation.where(:id => stock_mutation_id_to_be_re_map_list  ).each do |stock_mutation|
+      StockEntryMutation.delete_object( stock_mutation ) 
     end
     
-    StockEntry.where( :id => related_stock_entry_id_list).each do |stock_entry|
-      stock_entry.update_remaining_quantity 
-    end
+    # related_stock_entry_id_list = [] 
+    # StockEntryMutation.where(:stock_mutation_id => stock_mutation_id_to_be_re_map_list ).each do |sem|
+    #   related_stock_entry_id_list << sem.stock_entry_id 
+    #   sem.destroy 
+    # end
+    # 
+    # StockEntry.where( :id => related_stock_entry_id_list).each do |stock_entry|
+    #   stock_entry.update_remaining_quantity 
+    # end
     
     StockMutation.where(:id => stock_mutation_id_to_be_re_map_list).order("id ASC").each do |stock_mutation|
       next if StockEntryMutation.creation_mutation_cases.include?( stock_mutation.mutation_case ) 
