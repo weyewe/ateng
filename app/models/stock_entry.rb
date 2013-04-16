@@ -361,6 +361,7 @@ class StockEntry < ActiveRecord::Base
       # must be moved together with the sales_item_usage 
       stock_mutation   = sem.stock_mutation 
       if stock_mutation.mutation_case == MUTATION_CASE[:sales_item_usage]
+        # # WHEN we have had the SalesReturn, uncomment this code 
         # sales_return_entry_id_list = SalesReturnEntry.
         #                               where(:sales_order_entry_id => stock_mutation.source_document_entry_id).
         #                               map{|x| x.id }
