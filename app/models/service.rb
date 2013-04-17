@@ -3,15 +3,23 @@
 # linked to the service_price_history 
 # linked_to employee doing the service
 class Service < ActiveRecord::Base
-  # attr_accessible :title, :body
+  include UniqueNonDeleted
+  validate :unique_non_deleted_name 
+  validates_presence_of :name
   has_many :service_components  # this is the template (formulation). 
   
-  # the object being instantiated : sales_order_entry -> can refer to the item or to the service
-  # if it is the service, it will NOT auto instantiate the  service component instance 
-  # must be added manually 
+  
+  validate :selling_price_must_not_less_or_equal_than_zero 
+  
+  def selling_price_must_not_less_or_equal_than_zero
+    if not selling_price.present? or selling_price <= BigDecimal('0')
+      errors.add(:selling_price , "Harga jual harus lebih besar dari 0 rupiah" )  
+    end
+  end
+
   
   
-  def self.create(  params ) 
+  def self.create_object(  params ) 
     
     new_object               = self.new  
     
@@ -26,10 +34,9 @@ class Service < ActiveRecord::Base
     return new_object 
   end
   
-  def  update(  params )  
+  def  update_object(  params )  
     self.name          = params[:name] 
     self.selling_price = params[:selling_price] 
-
     self.save 
     return self 
   end

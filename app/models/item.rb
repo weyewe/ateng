@@ -27,7 +27,9 @@ class Item < ActiveRecord::Base
     self.name                      = params[:name] 
     self.selling_price = params[:selling_price] 
     
-    self.save 
+    if self.save 
+      
+    end
     return self 
   end
   

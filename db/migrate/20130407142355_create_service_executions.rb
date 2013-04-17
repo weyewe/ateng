@@ -9,6 +9,10 @@ class CreateServiceExecutions < ActiveRecord::Migration
       t.decimal :commission_amount  , :precision => 11, :scale => 2 , :default => 0
       
       t.boolean :is_confirmed , :default => false  # confirmed means payment of the fee 
+      
+      t.boolean :is_commission_approved, :default => false # if commission cycle is closed
+      
+      t.boolean :is_deleted , :default => false 
       t.timestamps
     end
   end
