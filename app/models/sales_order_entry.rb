@@ -3,7 +3,7 @@ class SalesOrderEntry < ActiveRecord::Base
   has_many :service_executions 
   has_many :material_consumptions 
   
-  has_many :sales_return_entries 
+  has_many :sales_return_entries # only for product 
   
   validate  :quantity_must_greater_than_zero, 
             :item_sales_object_entry_uniqueness ,
