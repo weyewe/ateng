@@ -34,6 +34,7 @@ describe PurchaseReceival do
         :email =>"", 
         :address =>""})
     
+    @employee = Employee.create_object( :name => "Si Employee")
     @customer = Customer.create_object(:name => "McDonald Teluk Bitung")
     
     # create item  

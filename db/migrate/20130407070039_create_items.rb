@@ -17,6 +17,7 @@ class CreateItems < ActiveRecord::Migration
       t.integer :ready , :default           => 0 
       t.integer :pending_receival , :default => 0 
       t.integer :pending_delivery , :default => 0  
+      t.decimal :commission_amount  , :precision => 11, :scale => 2 , :default => 0
       
       t.boolean :is_deleted , :default => false
 

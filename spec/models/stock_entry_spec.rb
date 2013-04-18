@@ -41,6 +41,7 @@ describe StockEntry do
         :email =>"", 
         :address =>""})
     
+    @employee = Employee.create_object( :name => "Si Employee")
     @customer = Customer.create_object(:name => "McDonald Teluk Bitung")
     
     # create item  
@@ -157,7 +158,8 @@ describe StockEntry do
         :entry_id =>   @item1.id ,
         :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
         :quantity =>  @sales_quantity ,
-        :discount => '0'
+        :discount => '0',
+        :employee_id => @employee.id
       })
       
       @so.confirm 

@@ -4,10 +4,15 @@ class SalesOrderEntry < ActiveRecord::Base
   has_many :material_consumptions 
   
   has_many :sales_return_entries # only for product 
+  has_one :commission, :as => :commissionable 
+  
+  belongs_to :sellable , :polymorphic => true 
+  
   
   validate  :quantity_must_greater_than_zero, 
             :item_sales_object_entry_uniqueness ,
             :discount_must_be_between_0_and_100,
+            :employee_id_presence_on_item_sales , 
             
             :post_confirm_update_constraint
             
@@ -54,6 +59,12 @@ class SalesOrderEntry < ActiveRecord::Base
     end
   end
   
+  def employee_id_presence_on_item_sales
+    if self.entry_case == SALES_ORDER_ENTRY_CASE[:item] and self.employee_id.nil? 
+      errors.add(:employee_id , "Harus memilih karyawan penjual" ) 
+    end
+  end
+  
   def post_confirm_update_constraint
     return nil if not self.is_confirmed? 
     return nil if self.is_deleted? 
@@ -96,14 +107,16 @@ class SalesOrderEntry < ActiveRecord::Base
     new_object.entry_case = params[:entry_case]
     
     if params[:entry_case] == SALES_ORDER_ENTRY_CASE[:item]
+      item = Item.find_by_id params[:entry_id]
       new_object.quantity = params[:quantity]
+      new_object.sellable = item 
     else
       new_object.quantity =  1 
     end
     
     new_object.discount = BigDecimal( params[:discount] )
     new_object.sales_order_id = parent.id 
-    
+    new_object.employee_id = params[:employee_id]
    
     new_object.assign_total_price if new_object.save 
     
@@ -111,27 +124,31 @@ class SalesOrderEntry < ActiveRecord::Base
   end
   
   def update_object( params ) 
-    # if self.is_confirmed?
-    #   self.validate_post_confirm_update 
-    #   return self if self.errors.size != 0 
-    # end
+    
     
     self.entry_id = params[:entry_id]
     if self.entry_case == SALES_ORDER_ENTRY_CASE[:item]
+      item =  Item.find_by_id params[:entry_id]
       self.quantity = params[:quantity]
+      self.sellable = item 
       # quantity for service, by default == 1 
+    else
+      self.quantity = 1 
     end
     
     self.discount = BigDecimal( params[:discount])
+    self.employee_id = params[:employee_id]
     
     ActiveRecord::Base.transaction do
       if self.save 
-        # puts "update object => going to StockMutation.create_or_update_sales_stock_mutation"
-        StockMutation.create_or_update_sales_stock_mutation( self ) if self.is_confirmed?
-        self.assign_total_price 
-        if self.entry_case == SALES_ORDER_ENTRY_CASE[:service]
-          # delete the MaterialUsed and ServicePerformed 
+        
+        if self.is_product?  # for POS: auto deduct 
+          StockMutation.create_or_update_sales_stock_mutation( self ) if self.is_confirmed?
+        elsif self.is_service? 
         end
+        
+        self.create_or_update_sales_commissions if self.is_confirmed? 
+        self.assign_total_price 
       end
     end
     
@@ -139,8 +156,22 @@ class SalesOrderEntry < ActiveRecord::Base
     return self 
   end
   
-  def validate_post_confirm_update
-    
+  def create_or_update_sales_commissions
+    if self.is_product?
+      past_object = self.commission
+      
+      if past_object.nil?
+        Commission.create_object(self,{
+          :employee_id => self.employee_id 
+        })
+      else
+        past_object.update_object( self, {
+          :employee_id => self.employee_id
+        })
+      end
+      
+    else
+    end
   end
   
   
@@ -173,17 +204,21 @@ class SalesOrderEntry < ActiveRecord::Base
     return nil if self.is_confirmed? 
     
     ActiveRecord::Base.transaction do
+      
       if self.is_product?  # for POS: auto deduct 
         StockMutation.create_or_update_sales_stock_mutation( self ) 
+        # update commissions 
       elsif self.is_service? 
         self.confirm_service_performed_and_deduct_stock 
         # ServicePerformed => commission to the employee responsible 
         # MaterialUsage => basis of stock deduction 
       end
-
       self.is_confirmed = true 
       self.confirmed_at = DateTime.now 
       self.save
+      
+      
+      self.create_or_update_sales_commissions
     end
     
   end
@@ -214,11 +249,15 @@ class SalesOrderEntry < ActiveRecord::Base
       
       if self.is_product?  # for POS: auto deduct 
         StockMutation.delete_object( self ) 
+        self.commission.delete_object 
       elsif self.is_service? 
-        self.confirm_service_performed_and_deduct_stock 
+        # self.confirm_service_performed_and_deduct_stock 
+        # self.commission.delete_object  # delete those service execution and the associated commisions
         # ServicePerformed => commission to the employee responsible 
         # MaterialUsage => basis of stock deduction 
       end
+      
+      
 
       
     end

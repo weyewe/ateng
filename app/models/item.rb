@@ -6,7 +6,7 @@ class Item < ActiveRecord::Base
   has_many :stock_entries 
   has_many :purchase_order_entries
   has_many :purchase_receival_entries 
-  has_many :sales_order_entries 
+  has_many :sales_order_entries , :as => :sellable 
   
   def self.active_objects
     Item.where(:is_deleted => false).order("id DESC")
@@ -16,17 +16,20 @@ class Item < ActiveRecord::Base
   def self.create_object( params) 
     new_object = Item.new  
     
-    new_object.name                      = params[:name] 
-    new_object.selling_price = params[:selling_price]
+    new_object.name              = params[:name] 
+    new_object.selling_price     = BigDecimal( params[:selling_price] ) 
+    new_object.commission_amount = BigDecimal( params[:commission_amount]  ) 
+
 
     new_object.save 
     return new_object 
   end
   
   def  update_object( params)  
-    self.name                      = params[:name] 
-    self.selling_price = params[:selling_price] 
-    
+    self.name              = params[:name] 
+    self.selling_price     = BigDecimal( params[:selling_price] )
+    self.commission_amount = BigDecimal( params[:commission_amount])
+
     if self.save 
       
     end

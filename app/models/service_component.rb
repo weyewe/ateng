@@ -37,15 +37,7 @@ class ServiceComponent < ActiveRecord::Base
     end
   end
   
-  
-  def has_confirmed_sales?
-    SalesOrderEntry.where(
-      :is_deleted => false, 
-      :is_confirmed => true,
-      :entry_case => SALES_ORDER_ENTRY_CASE[:service],
-      :entry_id => self.id 
-    ).length != 0
-  end
+   
   
   def has_sub_documents?
     self.material_usages.where(:is_deleted => false).length != 0 or 
@@ -53,9 +45,12 @@ class ServiceComponent < ActiveRecord::Base
   end
   
   def delete_object
-    if self.has_confirmed_sales? or self.has_sub_documents?
-      self.is_deleted = true
-      self.save 
+    if self.service.has_sales? 
+      self.errors.add(:generic_errors, "Sudah ada penjualan dengan service ini")
+      return self 
+    elsif  self.has_sub_documents?
+      self.errors.add(:generic_errors, "Untuk menghapus, hapus dahulu penggunaan material")
+      return self 
     else
       self.destroy 
     end

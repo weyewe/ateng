@@ -9,7 +9,7 @@ class CreateMaterialConsumptions < ActiveRecord::Migration
       
       
       t.boolean :is_confirmed, :default => false 
-
+      t.boolean :is_deleted, :default => false 
       t.timestamps
     end
   end

@@ -11,7 +11,16 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130410025149) do
+ActiveRecord::Schema.define(:version => 20130418030249) do
+
+  create_table "commissions", :force => true do |t|
+    t.decimal  "commission_amount",   :precision => 11, :scale => 2, :default => 0.0
+    t.integer  "commissionable_id"
+    t.string   "commissionable_type"
+    t.integer  "employee_id"
+    t.datetime "created_at",                                                          :null => false
+    t.datetime "updated_at",                                                          :null => false
+  end
 
   create_table "companies", :force => true do |t|
     t.string   "name"
@@ -50,15 +59,16 @@ ActiveRecord::Schema.define(:version => 20130410025149) do
 
   create_table "items", :force => true do |t|
     t.string   "name"
-    t.decimal  "average_cost",     :precision => 11, :scale => 2, :default => 0.0
-    t.decimal  "selling_price",    :precision => 11, :scale => 2, :default => 0.0
-    t.decimal  "inventory_value",  :precision => 12, :scale => 2, :default => 0.0
-    t.integer  "ready",                                           :default => 0
-    t.integer  "pending_receival",                                :default => 0
-    t.integer  "pending_delivery",                                :default => 0
-    t.boolean  "is_deleted",                                      :default => false
-    t.datetime "created_at",                                                         :null => false
-    t.datetime "updated_at",                                                         :null => false
+    t.decimal  "average_cost",      :precision => 11, :scale => 2, :default => 0.0
+    t.decimal  "selling_price",     :precision => 11, :scale => 2, :default => 0.0
+    t.decimal  "inventory_value",   :precision => 12, :scale => 2, :default => 0.0
+    t.integer  "ready",                                            :default => 0
+    t.integer  "pending_receival",                                 :default => 0
+    t.integer  "pending_delivery",                                 :default => 0
+    t.decimal  "commission_amount", :precision => 11, :scale => 2, :default => 0.0
+    t.boolean  "is_deleted",                                       :default => false
+    t.datetime "created_at",                                                          :null => false
+    t.datetime "updated_at",                                                          :null => false
   end
 
   create_table "material_consumptions", :force => true do |t|
@@ -66,6 +76,7 @@ ActiveRecord::Schema.define(:version => 20130410025149) do
     t.integer  "service_component_id"
     t.integer  "usage_option_id"
     t.boolean  "is_confirmed",         :default => false
+    t.boolean  "is_deleted",           :default => false
     t.datetime "created_at",                              :null => false
     t.datetime "updated_at",                              :null => false
   end
@@ -73,8 +84,9 @@ ActiveRecord::Schema.define(:version => 20130410025149) do
   create_table "material_usages", :force => true do |t|
     t.string   "name"
     t.integer  "service_component_id"
-    t.datetime "created_at",           :null => false
-    t.datetime "updated_at",           :null => false
+    t.boolean  "is_deleted",           :default => false
+    t.datetime "created_at",                              :null => false
+    t.datetime "updated_at",                              :null => false
   end
 
   create_table "price_histories", :force => true do |t|
@@ -143,8 +155,11 @@ ActiveRecord::Schema.define(:version => 20130410025149) do
 
   create_table "sales_order_entries", :force => true do |t|
     t.integer  "sales_order_id"
+    t.integer  "employee_id"
     t.integer  "entry_id"
     t.integer  "entry_case",                                    :default => 1
+    t.integer  "sellable_id"
+    t.string   "sellable_type"
     t.integer  "quantity"
     t.decimal  "unit_price",     :precision => 11, :scale => 2, :default => 0.0
     t.decimal  "total_price",    :precision => 11, :scale => 2, :default => 0.0
@@ -173,24 +188,27 @@ ActiveRecord::Schema.define(:version => 20130410025149) do
     t.string   "name"
     t.decimal  "commission_amount", :precision => 11, :scale => 2, :default => 0.0
     t.integer  "service_id"
-    t.datetime "created_at",                                                        :null => false
-    t.datetime "updated_at",                                                        :null => false
+    t.boolean  "is_deleted",                                       :default => false
+    t.datetime "created_at",                                                          :null => false
+    t.datetime "updated_at",                                                          :null => false
   end
 
   create_table "service_executions", :force => true do |t|
     t.integer  "service_id"
     t.integer  "service_component_id"
     t.integer  "employee_id"
-    t.decimal  "commission_amount",    :precision => 11, :scale => 2, :default => 0.0
-    t.boolean  "is_confirmed",                                        :default => false
-    t.datetime "created_at",                                                             :null => false
-    t.datetime "updated_at",                                                             :null => false
+    t.decimal  "commission_amount",      :precision => 11, :scale => 2, :default => 0.0
+    t.boolean  "is_confirmed",                                          :default => false
+    t.boolean  "is_commission_approved",                                :default => false
+    t.boolean  "is_deleted",                                            :default => false
+    t.datetime "created_at",                                                               :null => false
+    t.datetime "updated_at",                                                               :null => false
   end
 
   create_table "services", :force => true do |t|
     t.string   "name"
-    t.boolean  "is_deleted",                                   :default => false
     t.decimal  "selling_price", :precision => 11, :scale => 2, :default => 0.0
+    t.boolean  "is_deleted",                                   :default => false
     t.datetime "created_at",                                                      :null => false
     t.datetime "updated_at",                                                      :null => false
   end

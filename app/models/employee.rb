@@ -10,11 +10,13 @@ class Employee < ActiveRecord::Base
   has_many :service_executions 
   has_many :service_components, :through => :service_executions 
   
+  has_many :commissions 
+  
   def self.active_objects
     self.where(:is_deleted => false ).order("id DESC")
   end
   
-  def create( params )
+  def self.create_object( params )
     
     new_object         = self.new 
     new_object.name    = params[:name]
@@ -22,13 +24,12 @@ class Employee < ActiveRecord::Base
     new_object.mobile  = params[:mobile]
     new_object.email   = params[:email]
     new_object.bbm_pin = params[:bbm_pin]
-    new_object.town_id = params[:address] 
 
     new_object.save 
     return new_object 
   end
   
-  def update( params )
+  def update_object( params )
     self.name    = params[:name]
     self.phone   = params[:phone]
     self.mobile  = params[:mobile]

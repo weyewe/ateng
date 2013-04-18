@@ -8,6 +8,8 @@ class Service < ActiveRecord::Base
   validates_presence_of :name
   has_many :service_components  # this is the template (formulation). 
   
+  has_many :sales_order_entries, :as => :sellable 
+  
   
   validate :selling_price_must_not_less_or_equal_than_zero 
   
@@ -35,15 +37,32 @@ class Service < ActiveRecord::Base
   end
   
   def  update_object(  params )  
+    is_selling_price_changed = ( self.selling_price != BigDecimal(params[:selling_price]))? true : false 
     self.name          = params[:name] 
     self.selling_price = params[:selling_price] 
-    self.save 
+    
+    if self.save 
+      if is_selling_price_changed
+        # update all commission in service execution 
+      end
+    end
     return self 
   end
   
+  def has_sales?
+    SalesOrderEntry.where(
+      :entry_id => self.id, 
+      :entry_case => SALES_ORDER_ENTRY_CASE[:service]
+    ).length != 0
+  end
+  
   def delete
-    self.is_deleted = true 
-    self.save
+    if self.has_sales? 
+      self.is_deleted = true 
+      self.save
+    else
+      self.destroy 
+    end
   end
   
   

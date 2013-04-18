@@ -34,6 +34,7 @@ describe SalesOrder do
         :email =>"", 
         :address =>""})
     
+    @employee = Employee.create_object( :name => "Si Employee")
     @customer = Customer.create_object(:name => "McDonald Teluk Bitung")
     
     # create item  
@@ -118,7 +119,8 @@ describe SalesOrder do
         :entry_id =>   @item1.id ,
         :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
         :quantity =>  1 ,
-        :discount => '0'
+        :discount => '0',
+        :employee_id => @employee.id  
       })
       so_entry.should be_valid
     end
@@ -128,7 +130,8 @@ describe SalesOrder do
         :entry_id =>   @item1.id ,
         :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
         :quantity =>  1 ,
-        :discount => '100'
+        :discount => '100',
+        :employee_id => @employee.id  
       })
       so_entry.should be_valid
       so_entry.delete
@@ -137,7 +140,8 @@ describe SalesOrder do
         :entry_id =>   @item1.id ,
         :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
         :quantity =>  1 ,
-        :discount => '0'
+        :discount => '0',
+        :employee_id => @employee.id
       })
       so_entry.should be_valid
       so_entry.delete
@@ -146,7 +150,8 @@ describe SalesOrder do
         :entry_id =>   @item1.id ,
         :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
         :quantity =>  1 ,
-        :discount => '101'
+        :discount => '101',
+        :employee_id => @employee.id
       })
       so_entry.should_not be_valid
       so_entry.delete
@@ -155,7 +160,8 @@ describe SalesOrder do
         :entry_id =>   @item1.id ,
         :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
         :quantity =>  1 ,
-        :discount => '-5'
+        :discount => '-5',
+        :employee_id => @employee.id
       })
       so_entry.should_not be_valid
       so_entry.delete
@@ -167,7 +173,8 @@ describe SalesOrder do
         :entry_id => @item1.id ,
         :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
         :quantity =>  5 ,
-        :discount => '0'
+        :discount => '0',
+        :employee_id => @employee.id
       })
       so_entry.should be_valid
       
@@ -175,7 +182,8 @@ describe SalesOrder do
         :entry_id => @item1.id ,
         :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
         :quantity => 3  ,
-        :discount => '0'
+        :discount => '0',
+        :employee_id => @employee.id
       })
       so_entry.should_not be_valid
     end
@@ -185,7 +193,8 @@ describe SalesOrder do
         :entry_id => @item1.id ,
         :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
         :quantity =>  0  ,
-        :discount => '0'
+        :discount => '0',
+        :employee_id => @employee.id
       })
       so_entry.should_not be_valid
       so_entry.delete 
@@ -194,7 +203,8 @@ describe SalesOrder do
         :entry_id => @item1.id ,
         :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
         :quantity =>  -1 ,
-        :discount => '0'
+        :discount => '0',
+        :employee_id => @employee.id
       })
       so_entry.should_not be_valid
       so_entry.delete 
@@ -208,14 +218,16 @@ describe SalesOrder do
           :entry_id => @item1.id ,
           :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
           :quantity =>  @so_quantity1 ,
-          :discount => '0'
+          :discount => '0',
+          :employee_id => @employee.id
         })
         @so_quantity2 =  @stock_entry2.remaining_quantity
         @so_entry2 = SalesOrderEntry.create_object(  @so, {
           :entry_id => @item2.id ,
           :entry_case =>  SALES_ORDER_ENTRY_CASE[:item] ,
           :quantity =>  @so_quantity2 ,
-          :discount => '0'
+          :discount => '0',
+          :employee_id => @employee.id
         })
       end
       
@@ -230,7 +242,8 @@ describe SalesOrder do
         @so_entry1.update_object(  {
           :entry_id => @item3.id,
           :quantity => @so_quantity1,
-          :discount => '0'
+          :discount => '0',
+          :employee_id => @employee.id
         })
         
         @so_entry1.should be_valid 
@@ -243,7 +256,8 @@ describe SalesOrder do
         @so_entry1.update_object(  {
           :entry_id => @item2.id,
           :quantity => @so_quantity1,
-          :discount => '0'
+          :discount => '0',
+          :employee_id => @employee.id
         })
         @so_entry1.should_not be_valid 
       end
@@ -313,7 +327,8 @@ describe SalesOrder do
           @so_entry1.update_object({
             :entry_id => @item2.id,
             :quantity => 1,
-            :discount => '0'
+            :discount => '0',
+            :employee_id => @employee.id
           })
           @so_entry1.errors.size.should_not == 0 
         end
@@ -324,7 +339,8 @@ describe SalesOrder do
           @so_entry1.update_object({
             :entry_id => @item1.id,
             :quantity => @quantity1,
-            :discount => '0'
+            :discount => '0',
+            :employee_id => @employee.id
           })
           
           @so_entry1.errors.size.should == 0 
@@ -334,7 +350,8 @@ describe SalesOrder do
           @so_entry1.update_object({
             :entry_id => @item1.id,
             :quantity => @quantity1 + 1 ,
-            :discount => '0'
+            :discount => '0',
+            :employee_id => @employee.id
           })
           
           @so_entry1.errors.size.should_not == 0
@@ -360,7 +377,8 @@ describe SalesOrder do
             @so_entry1.update_object({
               :entry_id => @item3.id,
               :quantity => @quantity_to_be_used_from_item3,
-              :discount => '0'
+              :discount => '0',
+              :employee_id => @employee.id
             })
             
             @stock_entry1.reload
