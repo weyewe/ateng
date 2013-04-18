@@ -48,7 +48,7 @@ class ServiceComponent < ActiveRecord::Base
     if self.service.has_sales? 
       self.errors.add(:generic_errors, "Sudah ada penjualan dengan service ini")
       return self 
-    elsif  self.has_sub_documents?
+    elsif  not self.service.has_sales? and self.has_sub_documents? 
       self.errors.add(:generic_errors, "Untuk menghapus, hapus dahulu penggunaan material")
       return self 
     else
