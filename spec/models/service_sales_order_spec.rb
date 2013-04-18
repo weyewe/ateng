@@ -37,62 +37,68 @@ describe "ServiceSalesOrder" do
     @employee = Employee.create_object( :name => "Si Employee")
     @customer = Customer.create_object(:name => "McDonald Teluk Bitung")
     
-    # create item  
+    # => create item
     @selling_price = "100000"
     @item_name = "Test Item"
     @commission_amount = '10000'
     @item1  = Item.create_object(  {
       :name          =>  "#{@item_name} 1" ,
       :selling_price => @selling_price,
-      :commission_amount => @commission_amount
+      :commission_amount => @commission_amount 
     })
-    @item1.reload 
-    
-    @item2  = Item.create_object(  {
-      :name          =>  "#{@item_name} 2" ,
-      :selling_price => @selling_price,
-      :commission_amount => @commission_amount
-    })
-    @item2.reload
-    
-    @item3  = Item.create_object(  {
-      :name          =>  "#{@item_name} 3" ,
-      :selling_price => @selling_price,
-      :commission_amount => @commission_amount
-    })
-    @item3.reload
+    @item1.reload
     
     @quantity1 = 10
-    @quantity2 = 5
-    @quantity3 = 4
     @average_cost_1 = '40000'
-    @average_cost_2 = '50000'
-    @average_cost_3 = '100000'
     @stock_migration1 = StockMigration.create_object({
       :item_id => @item1.id, 
       :quantity => @quantity1 , 
       :average_cost => @average_cost_1
     })
-    @stock_entry1 = @stock_migration1.stock_entry 
     
-    @stock_migration2 = StockMigration.create_object({
-      :item_id => @item2.id, 
-      :quantity => @quantity2 , 
-      :average_cost => @average_cost_2
+    
+    # => create service
+    @service_name = 'First Service'
+    @selling_price = '120000'
+    @service = Service.create_object({
+      :name => @service_name,
+      :selling_price => @selling_price
     })
-    @stock_entry2 = @stock_migration2.stock_entry 
     
-    @stock_migration3 = StockMigration.create_object({
-      :item_id => @item3.id, 
-      :quantity => @quantity3 , 
-      :average_cost => @average_cost_3
+    
+    # => create service component 
+    @service_component_name1 = 'service component 1'
+    @commission_amount1 = '12000'
+    @service_component1 = ServiceComponent.create_object({
+      :name => @service_component_name1 ,
+      :service_id => @service.id ,
+      :commission_amount => @commission_amount1
     })
-    @stock_entry3 = @stock_migration3.stock_entry 
     
-    @item1.reload
-    @item2.reload
-    @item3.reload
+    @material_usage_name = "Material Usage Name"
+    @material_usage = MaterialUsage.create_object({
+      :name => "Name",
+      :service_component_id => @service_component1.id ,
+      :service_id => @service.id
+    })
+    
+    @usage_quantity1 = 2 
+    @usage_option = UsageOption.create_object({
+      :service_component_id => @service_component1.id , 
+      :material_usage_id    => @material_usage.id ,
+      :item_id              => @item1.id , 
+      :quantity             => @usage_quantity1
+    })
+    
   end
+  
+  it 'should create all the necessary shite' do
+    @service.should be_valid 
+    @service_component1.should be_valid 
+    @material_usage.should be_valid 
+    @usage_option.should be_valid 
+  end
+
  
 
 end

@@ -7,8 +7,7 @@ class UsageOption < ActiveRecord::Base
   validate :item_is_not_deleted,
             :service_component_is_not_deleted, 
             :material_usage_is_not_deleted, 
-            :quantity_is_more_than_zero# ,
-            #             :unique_usage_option
+            :quantity_is_more_than_zero 
   
   def item_is_not_deleted
     if  self.item_id.present? and self.item.is_deleted == true 
@@ -35,9 +34,7 @@ class UsageOption < ActiveRecord::Base
       self.errors.add(:quantity, "Quantity tidak boleh lebih kecil dari 1")
     end
   end
-  
-  # def unique_usage_option
-  # end
+   
   
   def self.create_object( params ) 
     new_object = self.new 
