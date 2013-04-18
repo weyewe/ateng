@@ -59,7 +59,7 @@ class ServiceExecution < ActiveRecord::Base
     self.save 
   end
   
-  def delete
+  def delete_object 
     if not self.is_confirmed?
       self.destroy 
       return 

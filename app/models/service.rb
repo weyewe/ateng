@@ -1,4 +1,3 @@
-
 # store the info of service name , description, last price
 # linked to the service_price_history 
 # linked_to employee doing the service
@@ -20,6 +19,10 @@ class Service < ActiveRecord::Base
   end
 
   
+  
+  def active_service_components
+    self.service_components.where(:is_deleted => false ).order("id DESC")
+  end
   
   def self.create_object(  params ) 
     
@@ -56,7 +59,7 @@ class Service < ActiveRecord::Base
     ).length != 0
   end
   
-  def delete
+  def delete_object
     if self.has_sales? 
       self.is_deleted = true 
       self.save

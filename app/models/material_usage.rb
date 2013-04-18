@@ -9,11 +9,13 @@ class MaterialUsage < ActiveRecord::Base
   belongs_to :service_component 
   has_many :material_consumptions 
   
-  validates_presence_of :service_component_id, :name 
+  belongs_to :service
+  
+  validates_presence_of :service_component_id, :name, :service_id  
   validate :service_component_must_not_be_deleted
   
   def service_component_must_not_be_deleted
-    if self.service_component.is_deleted? 
+    if not self.service_component_id.nil? and self.service_component.is_deleted? 
       errors.add(:service_component_id , "Service Component harus aktif" )  
     end
   end
@@ -22,6 +24,7 @@ class MaterialUsage < ActiveRecord::Base
     new_object = self.new
     new_object.name = params[:name]
     new_object.service_component_id = params[:service_component_id]
+    new_object.service_id = params[:service_id]
     new_object.save 
     
     return new_object
@@ -30,10 +33,9 @@ class MaterialUsage < ActiveRecord::Base
   def update_object( params ) 
     is_service_component_changed = (self.service_component_id != params[:service_component_id])? true : false 
     self.name = params[:name]
-    self.service_component_id = params[:service_component_id]
+    self.service_component_id = params[:service_component_id] 
     
-    
-    if is_service_component_changed? and self.service.has_sales?
+    if is_service_component_changed and self.service.has_sales?
       self.errors.add(:service_component_id, "Sudah ada penjualan")
     end
     
@@ -48,7 +50,7 @@ class MaterialUsage < ActiveRecord::Base
     self.usage_options.where(:is_deleted => false ).length != 0  
   end
   
-  def delete 
+  def delete_object 
     
     if self.service.has_sales?    
       self.errors.add(:generic_errors, "Sudah ada penjualan dengan service ini")

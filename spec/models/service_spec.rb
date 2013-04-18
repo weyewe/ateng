@@ -53,10 +53,20 @@ describe Service do
       @new_service.should_not be_valid 
     end
     
+    it 'should be destroyed if there is no sales_order' do
+      service_id = @service.id 
+      @service.delete_object
+      
+      Service.find_by_id(service_id).should be_nil
+    end
+    
     context "post sales order creation => can't hard delete service" do
+      before(:each) do
+        # create sales order
+      end
+      
       it 'can only be soft-deleted'
       
-      it ''
     end
     
   end

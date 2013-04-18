@@ -47,21 +47,25 @@ describe StockEntry do
     # create item  
     @selling_price = "100000"
     @item_name = "Test Item"
+    @commission_amount = '10000'
     @item1  = Item.create_object(  {
       :name          =>  "#{@item_name} 1" ,
-      :selling_price => @selling_price
+      :selling_price => @selling_price,
+      :commission_amount => @commission_amount
     })
     @item1.reload 
     
     @item2  = Item.create_object(  {
       :name          =>  "#{@item_name} 2" ,
-      :selling_price => @selling_price
+      :selling_price => @selling_price,
+      :commission_amount => @commission_amount
     })
     @item2.reload
     
     @item3  = Item.create_object(  {
       :name          =>  "#{@item_name} 3" ,
-      :selling_price => @selling_price
+      :selling_price => @selling_price,
+      :commission_amount => @commission_amount
     })
     @item3.reload
     

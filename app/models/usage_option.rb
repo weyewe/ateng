@@ -1,6 +1,7 @@
 class UsageOption < ActiveRecord::Base
   belongs_to :material_usage 
   belongs_to :item 
+  belongs_to :service_component
   validates_presence_of :service_component_id, :material_usage_id, :item_id, :quantity 
   
   validate :item_is_not_deleted,
@@ -10,20 +11,20 @@ class UsageOption < ActiveRecord::Base
             #             :unique_usage_option
   
   def item_is_not_deleted
-    if  self.item_id.present? and item.is_deleted == true 
+    if  self.item_id.present? and self.item.is_deleted == true 
       self.errors.add(:item_id , "Item #{self.item.name} sudah tidak aktif. Pilih item yang aktif");
     end
   end
   
   def service_component_is_not_deleted
-    if  self.service_component_id.present? and service_component.is_deleted == true 
+    if  self.service_component_id.present? and self.service_component.is_deleted == true 
       self.errors.add(:service_component_id , "Service Component #{self.service_component.name} sudah tidak aktif." + 
                                               " Pilih service_component yang aktif");
     end
   end
   
   def material_usage_is_not_deleted
-    if  self.material_usage_id.present? and material_usage.is_deleted == true 
+    if  self.material_usage_id.present? and self.material_usage.is_deleted == true 
       self.errors.add(:material_usage_id , "Penggunaan Material #{self.material_usage.name} sudah tidak aktif."+ 
                                           " Pilih penggunaan material yang aktif");
     end
@@ -41,9 +42,10 @@ class UsageOption < ActiveRecord::Base
   def self.create_object( params ) 
     new_object = self.new 
     new_object.service_component_id = params[:service_component_id]
-    new_object.material_usage_id = params[:material_usage_id]
-    new_object.item_id = params[:item_id]
-    new_object.quantity = params[:quantity]
+    new_object.material_usage_id    = params[:material_usage_id]
+    new_object.item_id              = params[:item_id]
+    new_object.quantity             = params[:quantity]
+
     new_object.save
     
     return new_object 
@@ -80,7 +82,7 @@ class UsageOption < ActiveRecord::Base
     return self 
   end
   
-  def delete
+  def delete_object 
     if self.material_usage.service.has_sales?    
       self.errors.add(:generic_errors, "Sudah ada penjualan dengan service dari pilihan ini")
       return self 

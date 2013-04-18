@@ -4,7 +4,7 @@ class CreateMaterialUsages < ActiveRecord::Migration
       t.string :name 
       t.integer :service_component_id 
       
-      
+      t.integer :service_id 
       t.boolean :is_deleted , :default => false 
 
       t.timestamps

@@ -38,9 +38,11 @@ describe StockMigration do
     # create item  
     @selling_price = "100000"
     @item_name = "Test Item"
+    @commission_amount = '10000'
     @item  = Item.create_object(  {
       :name          =>  @item_name ,
-      :selling_price => @selling_price
+      :selling_price => @selling_price,
+      :commission_amount => @commission_amount
     })
     @item.reload 
   end

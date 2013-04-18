@@ -14,12 +14,13 @@
 ActiveRecord::Schema.define(:version => 20130418030249) do
 
   create_table "commissions", :force => true do |t|
-    t.decimal  "commission_amount",   :precision => 11, :scale => 2, :default => 0.0
+    t.decimal  "commission_amount",      :precision => 11, :scale => 2, :default => 0.0
     t.integer  "commissionable_id"
     t.string   "commissionable_type"
     t.integer  "employee_id"
-    t.datetime "created_at",                                                          :null => false
-    t.datetime "updated_at",                                                          :null => false
+    t.boolean  "is_commission_approved",                                :default => false
+    t.datetime "created_at",                                                               :null => false
+    t.datetime "updated_at",                                                               :null => false
   end
 
   create_table "companies", :force => true do |t|
@@ -84,6 +85,7 @@ ActiveRecord::Schema.define(:version => 20130418030249) do
   create_table "material_usages", :force => true do |t|
     t.string   "name"
     t.integer  "service_component_id"
+    t.integer  "service_id"
     t.boolean  "is_deleted",           :default => false
     t.datetime "created_at",                              :null => false
     t.datetime "updated_at",                              :null => false
