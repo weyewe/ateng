@@ -212,6 +212,10 @@ describe "ServiceSalesOrder" do
         @so_entry1.reload 
       end
       
+      it 'should create no service_execution' do
+        @so_entry1.service_executions.count.should == 0 
+      end
+      
       it 'should create default material consumption' do
         @so_entry1.material_consumptions.length.should == 1 
       end
@@ -220,10 +224,17 @@ describe "ServiceSalesOrder" do
         @so_entry1.material_consumptions.first.usage_option_id.should == @mu1_usage_option1.id 
       end
       
-
-
       context "confirming the sales_order" do
         before(:each) do
+          
+          # add service execution to the so_entry1 
+          
+          @service_execution_soe1 = ServiceExecution.create_object({
+            :employee_id => @employee.id ,
+            :service_component_id => @service_component1.id , 
+            :sales_order_entry_id => @so_entry1.id 
+          })
+          
           @material_consumption1 = @so_entry1.material_consumptions.first 
           @item1.reload 
           @initial_ready1 = @item1.ready
@@ -231,6 +242,15 @@ describe "ServiceSalesOrder" do
           @so_entry1.reload 
           @item1.reload 
           @material_consumption1.reload 
+          @service_execution_soe1.reload 
+        end
+        
+        it 'should confirm the service_execution' do
+          @service_execution_soe1.is_confirmed.should be_true 
+        end
+        
+        it 'should produce commission' do
+          @service_execution_soe1.commission.should be_valid 
         end
 
         it 'should confirm the sales_order and sales_order_entry' do
@@ -394,10 +414,51 @@ describe "ServiceSalesOrder" do
             
           end
         end
+      
+        context "add sales_order_entry post confirm " do
+          before(:each) do
+            @so_entry2 = SalesOrderEntry.create_object(  @so, {
+              :entry_id =>   @service.id ,
+              :entry_case =>  SALES_ORDER_ENTRY_CASE[:service] ,
+              :quantity =>  10 ,
+              :discount => '0',
+              :employee_id => @employee.id  
+            })
+            
+            @so_entry2.reload 
+          end
+          
+          it 'should auto confirm the sales order entry ' do
+            @so_entry2.is_confirmed.should be_true 
+          end
+          
+          it 'should create stock_mutation corresponding to the sales_order_entry' do
+            @so_entry2.material_consumptions.each do |material_consumption|
+              StockMutation.where(
+                :source_document_entry => material_consumption.class.to_s , 
+                :source_document_entry_id => material_consumption.id 
+              ).count.should == 1 
+            end 
+          end
+          
+          it 'should not auto create service execution' do
+            @so_entry2.service_executions.count.should == 0  
+          end
+          
+          it 'should auto confirm service execution created after so confirmation' do 
+            @service_execution_soe2 = ServiceExecution.create_object({
+              :employee_id => @employee.id ,
+              :service_component_id => @service_component1.id , 
+              :sales_order_entry_id => @so_entry2.id 
+            })
+            @service_execution_soe2.should be_valid 
+            @service_execution_soe2.is_confirmed.should be_true 
+            
+            @service_execution_soe2.commission.should be_valid 
+          end
+        end
       end
     end
-    
-    
   end
 
  

@@ -3,6 +3,37 @@ class SalesOrder < ActiveRecord::Base
   belongs_to :customer  
   has_many :sales_order_entries 
   
+  def validate_enough_item_quantity_for_confirmation
+    item_quantity_hash = {}
+    # key is the item_id 
+    # value is the quantity required 
+    self.active_sales_order_entries.each do |soe|
+      if soe.is_product?
+        if item_quantity_hash[soe.entry_id].nil?
+          item_quantity_hash[soe.entry_id] = soe.quantity 
+        else
+          item_quantity_hash[soe.entry_id] = soe.quantity  + item_quantity_hash[soe.entry_id]
+        end
+      else
+        soe.material_consumptions.joins(:usage_option).each do |material_consumption|
+          usage_option = material_consumption.usage_option
+          if item_quantity_hash[usage_option.item_id].nil?
+            item_quantity_hash[usage_option.item_id] =  usage_option.quantity 
+          else
+            item_quantity_hash[usage_option.item_id] += usage_option.quantity  + item_quantity_hash[usage_option.item_id] 
+          end
+        end
+      end
+    end
+    
+    item_quantity_hash.each do |key, value |
+      item = Item.find_by_id(key) 
+      if item.ready <  value 
+        errors.add(:generic_error, "Kuantitas item #{item.name} tidak cukup (ready = #{item.ready})")
+        return 
+      end
+    end
+  end
   
   def self.create_object( params  )  
     new_object  = self.new
@@ -64,7 +95,9 @@ class SalesOrder < ActiveRecord::Base
     return nil if self.is_confirmed? 
     return nil if self.active_sales_order_entries.count ==0 
     
-
+    self.validate_enough_item_quantity_for_confirmation
+    return self if self.errors.size != 0 
+    
     ActiveRecord::Base.transaction do
       
       self.is_confirmed = true 
