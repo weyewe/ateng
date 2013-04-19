@@ -28,6 +28,10 @@ class MaterialConsumption < ActiveRecord::Base
     new_object.sales_order_entry_id = params[:sales_order_entry_id]
     new_object.save 
     
+    if new_object.errors.size == 0 and new_object.sales_order_entry.is_confirmed? 
+      new_object.confirm 
+    end
+    
     return new_object
   end
   

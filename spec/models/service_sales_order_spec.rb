@@ -250,13 +250,51 @@ describe "ServiceSalesOrder" do
         
         context "update usage_option post confirm" do
           before(:each) do
+            @item1.reload
+            @item2.reload 
+            @initial_item1_ready = @item1.ready
+            @initial_item2_ready = @item2.ready 
+            @material_consumption1.update_object({
+              :usage_option_id => @mu1_usage_option2.id
+            })
             
+            @item1.reload
+            @item2.reload
+          end
+          
+          it 'should update the material_consumption1' do
+            @material_consumption1.errors.size.should ==0 
+            @material_consumption1.usage_option_id.should == @mu1_usage_option2.id 
+          end
+          
+          it 'should recover item1 ready' do
+            @final_item1_ready = @item1.ready 
+            diff = @final_item1_ready - @initial_item1_ready 
+            diff.should == @mu1_usage_option1.quantity 
+          end
+          
+          it 'should deduct item2 ready' do
+            @final_item2_ready = @item2.ready
+            diff = @initial_item2_ready - @final_item2_ready 
+            diff.should == @mu1_usage_option2.quantity 
+          end
+        end
+     
+        context "destroy material_consumption" do
+          before(:each) do
+            @item1.reload
+            @initial_item1_ready = @item1.ready
+            @material_consumption1.delete_object 
+            @item1.reload 
+          end
+          
+          it 'should recovert the item1 ready' do
+            @final_item1_ready = @item1.ready 
+            diff = @final_item1_ready - @initial_item1_ready 
+            diff.should == @mu1_usage_option1.quantity
           end
         end
       end
-
-
-   
     end
     
     
