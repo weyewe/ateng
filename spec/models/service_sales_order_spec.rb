@@ -288,10 +288,33 @@ describe "ServiceSalesOrder" do
             @item1.reload 
           end
           
-          it 'should recovert the item1 ready' do
+          it 'should recover the item1 ready' do
             @final_item1_ready = @item1.ready 
             diff = @final_item1_ready - @initial_item1_ready 
             diff.should == @mu1_usage_option1.quantity
+          end
+        end
+        
+        context "destroy sales_order_enrty" do
+          before(:each) do
+            @item1.reload
+            @so_entry1.reload 
+            @initial_item1_ready = @item1.ready 
+            @quantity_consumed = @material_consumption1.usage_option.quantity 
+            @so_entry1.delete_object 
+            @item1.reload 
+          end
+          
+          it 'should recover the item1 ready' do
+            @final_item1_ready = @item1.ready 
+            diff = @final_item1_ready - @initial_item1_ready 
+            diff.should == @quantity_consumed
+          end
+          
+          it 'should not destroy the sales order entry, but mark it as is deleted' do
+            @so_entry1.is_deleted.should be_true 
+            @so.reload
+            @so.active_sales_order_entries.count.should == 0 
           end
         end
       end

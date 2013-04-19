@@ -13,7 +13,7 @@ class ServiceExecution < ActiveRecord::Base
   validate :entry_uniqueness 
   
   
-  has_one :commissions, :as => :commissionable 
+  has_one :commission, :as => :commissionable 
   
   def employee_must_not_deleted
     if not self.is_confirmed? and self.employee.is_deleted?

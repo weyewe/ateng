@@ -117,17 +117,45 @@ class SalesOrderEntry < ActiveRecord::Base
   end
   
   def create_or_update_sales_commissions
-    past_object = self.commission
-    
-    if past_object.nil?
-      Commission.create_object(self,{
+    if self.is_product?
+      # past_object = self.commission
+      # 
+      # if past_object.nil?
+      #   Commission.create_object(self,{
+      #     :employee_id => self.employee_id 
+      #   })
+      # else
+      #   past_object.update_object( self, {
+      #     :employee_id => self.employee_id
+      #   })
+      # end
+      
+      Commission.create_or_update_object( self, {
         :employee_id => self.employee_id 
       })
-    else
-      past_object.update_object( self, {
-        :employee_id => self.employee_id
-      })
+      
+    elsif self.is_service?
+      self.service_executions.each do |service_execution|
+        
+        Commission.create_or_update_object( service_execution, {
+          :employee_id => self.employee_id 
+        })
+        
+        # past_object = service_execution.commission
+        # 
+        # if past_object.nil?
+        #   Commission.create_object(service_execution,{
+        #     :employee_id => self.employee_id 
+        #   })
+        # else
+        #   past_object.update_object( service_execution, {
+        #     :employee_id => self.employee_id
+        #   })
+        # end
+        
+      end
     end
+    
   end
   
   

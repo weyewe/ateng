@@ -7,6 +7,7 @@ class Commission < ActiveRecord::Base
   
   def update_commission_amount
     if self.commissionable.class.to_s  == "ServiceExecution"
+      # the commissionable is service_component 
       self.commission_amount = self.commissionable.commission_amount
     else
       self.commission_amount = self.commissionable.sellable.commission_amount 
@@ -34,6 +35,16 @@ class Commission < ActiveRecord::Base
       self.update_commission_amount
     end
     return self 
+  end
+  
+  def self.create_or_update_object( commissionable, params)
+    past_object = commissionable.commission 
+    
+    if past_object.nil?
+      Commission.create_object(commissionable, params )
+    else
+      past_object.update_object( commissionable,  params )
+    end
   end
   
   
