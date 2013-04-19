@@ -68,20 +68,7 @@ class SalesOrderEntry < ActiveRecord::Base
   def post_confirm_update_constraint
     return nil if not self.is_confirmed? 
     return nil if self.is_deleted? 
-    # puts "********************** Gonna Execute post confirm \n"*10
-    # if self.sales_return_entries.count != 0  and self.entry_case == SALES_ORDER_ENTRY_CASE[:item]
-    #   
-    #   # watch the stock_mutation 
-    #   
-    #   
-    #   
-    #   # if there is sales return, watch the max quantity 
-    #   total_returned = self.sales_return_entries.sum("quantity")
-    #   
-    #   if quantity < total_returned 
-    #     errors.add(:quantity , "Ada sales return dengan jumlah: #{total_returned}" ) 
-    #   end
-    # end
+
     
     if self.entry_case == SALES_ORDER_ENTRY_CASE[:item]
       stock_mutation = StockMutation.where(
@@ -111,16 +98,41 @@ class SalesOrderEntry < ActiveRecord::Base
       new_object.quantity = params[:quantity]
       new_object.sellable = item 
     else
+      service = Service.find_by_id params[:entry_id]
       new_object.quantity =  1 
+      new_object.sellable = service 
     end
     
     new_object.discount = BigDecimal( params[:discount] )
     new_object.sales_order_id = parent.id 
     new_object.employee_id = params[:employee_id]
    
-    new_object.assign_total_price if new_object.save 
+    
+    if new_object.save 
+      new_object.assign_total_price 
+      if new_object.entry_case == SALES_ORDER_ENTRY_CASE[:service]
+        new_object.auto_create_material_consumption
+      end
+    end
     
     return new_object 
+  end
+  
+  def auto_create_material_consumption
+    self.sellable.service_components.each do |service_component|
+      service_component.material_usages.each do |material_usage|
+        first_available_option = material_usage.first_available_option
+        
+        if first_available_option
+           material_consumption = MaterialConsumption.create_object({
+             :service_component_id => service_component.id ,
+             :usage_option_id => first_available_option.id,
+             :sales_order_entry_id => self.id  
+           })
+        end
+        
+      end
+    end
   end
   
   def update_object( params ) 
@@ -229,9 +241,9 @@ class SalesOrderEntry < ActiveRecord::Base
       material_consumption.confirm 
     end
     
-    self.service_executions.each do |service_execution|
-      service_execution.confirm 
-    end
+    # self.service_executions.each do |service_execution|
+    #   service_execution.confirm 
+    # end
   end
   
   def delete_object

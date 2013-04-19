@@ -62,4 +62,12 @@ class MaterialUsage < ActiveRecord::Base
       self.destroy 
     end
   end
+  
+  def first_available_option
+    return nil if self.usage_options.length == 0 
+    
+    UsageOption.joins(:item).where{
+      (quantity.lte item.ready )
+    }.order("id ASC").first 
+  end
 end

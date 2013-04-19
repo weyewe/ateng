@@ -67,6 +67,15 @@ class StockMutation < ActiveRecord::Base
       ).first
     end
     
+    if document_entry.class.to_s == 'MaterialConsumption'
+      past_object = self.where(
+        :source_document_entry => document_entry.class.to_s,
+        :source_document_entry_id => document_entry.id,
+        :mutation_case => MUTATION_CASE[:sales_service_usage],
+        :mutation_status => MUTATION_STATUS[:deduction]
+      ).first
+    end
+    
     return past_object 
   end
   
@@ -159,6 +168,34 @@ class StockMutation < ActiveRecord::Base
       # puts "create_or_update_sales_stock_mutation : inside the past_object.present? "
       past_object.quantity = sales_order_entry.quantity
       past_object.item_id = sales_order_entry.entry_id 
+      
+      if past_object.save 
+        StockEntryMutation.update_object(  past_object, nil   ) 
+      end
+    end
+  end
+  
+  def self.create_or_update_service_sales_stock_mutation( material_consumption ) 
+
+    past_object = self.extract_past_object( material_consumption ) 
+    
+    if past_object.nil? 
+      new_object = self.new
+      new_object.quantity                 = material_consumption.usage_option.quantity
+      new_object.source_document_entry_id = material_consumption.id 
+      new_object.source_document_id       = material_consumption.sales_order_entry_id 
+      new_object.source_document_entry    = material_consumption.class.to_s
+      new_object.source_document          = material_consumption.sales_order_entry_id.class
+      new_object.item_id                  = material_consumption.usage_option.item_id  
+      new_object.mutation_case            = MUTATION_CASE[:sales_service_usage] 
+      new_object.mutation_status          = MUTATION_STATUS[:deduction]
+      
+      if new_object.save 
+        StockEntryMutation.create_object( new_object , nil ) 
+      end
+    else
+      past_object.quantity = material_consumption.usage_option.quantity 
+      past_object.item_id = material_consumption.usage_option.item_id 
       
       if past_object.save 
         StockEntryMutation.update_object(  past_object, nil   ) 
