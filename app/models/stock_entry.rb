@@ -127,7 +127,7 @@ class StockEntry < ActiveRecord::Base
       # we need to update the Inventory Price, because base price per piece is changed
       
     elsif not is_item_changed and is_quantity_changed 
-      puts "the quantity changed"
+      # puts "the quantity changed"
       diff = quantity - initial_quantity 
      
       StockEntryMutation.update_object( stock_mutation, stock_entry ) 

@@ -106,7 +106,7 @@ describe StockMigration do
       @item.reload 
       @initial_item_ready  = @item.ready 
       
-      puts "Gonna create stock migration"
+      # puts "Gonna create stock migration"
       @stock_migration = StockMigration.create_object({
         :item_id => @item.id, 
         :quantity => @quantity , 

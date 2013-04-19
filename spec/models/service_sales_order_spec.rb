@@ -295,14 +295,70 @@ describe "ServiceSalesOrder" do
           end
         end
         
+        
+        it 'should produce commission' do
+          @so_entry1.reload 
+          @commissionable_list = [] 
+          @so_entry1.service_executions.each do |service_execution|
+            @commissionable_list << {
+              :commissionable_type => service_execution.class.to_s ,
+              :commissionable_id => service_execution.id 
+            }
+          end
+          @commissionable_list.each do |commissionable_hash|
+            Commission.where(
+              :commissionable_type => commissionable_hash[:commissionable_type],
+              :commissionable_id => commissionable_hash[:commissionable_id]
+            ).count.should == 1 
+            
+            commission = Commission.where(
+              :commissionable_type => commissionable_hash[:commissionable_type],
+              :commissionable_id => commissionable_hash[:commissionable_id]
+            ).first 
+            
+            commission.commission_amount.should == commission.commissionable.commission_amount 
+          end
+        end
+        
+        it 'should produce sub_documents: stock_mutation from material_consumption ' do
+          @so_entry1.reload 
+          @stock_mutation_list = [] 
+          @so_entry1.material_consumptions.each do |material_consumption|
+            @stock_mutation_list << {
+              :source_document_entry => material_consumption.class.to_s ,
+              :source_document_entry_id => material_consumption.id 
+            }
+          end
+          
+          @stock_mutation_list.each do |stock_mutation_hash|
+            StockMutation.where(
+            :source_document_entry => stock_mutation_hash[:source_document_entry],
+            :source_document_entry_id => stock_mutation_hash[:source_document_entry_id]
+            ).count.should == 1 
+          end
+        end
+        
         context "destroy sales_order_enrty" do
           before(:each) do
             @item1.reload
             @so_entry1.reload 
             @initial_item1_ready = @item1.ready 
             @quantity_consumed = @material_consumption1.usage_option.quantity 
-            @commissionable_type = @so_entry1.class.to_s 
-            @commissionable_id = @so_entry1.id 
+            @commissionable_list = [] 
+            @so_entry1.service_executions.each do |service_execution|
+              @commissionable_list << {
+                :commissionable_type => service_execution.class.to_s ,
+                :commissionable_id => service_execution.id 
+              }
+            end
+            
+            @stock_mutation_list = [] 
+            @so_entry1.material_consumptions.each do |material_consumption|
+              @stock_mutation_list << {
+                :source_document_entry => material_consumption.class.to_s ,
+                :source_document_entry_id => material_consumption.id 
+              }
+            end
             @so_entry1.delete_object 
             @item1.reload 
           end
@@ -320,15 +376,24 @@ describe "ServiceSalesOrder" do
           end
           
           it 'should destroy the commission' do
-            Commission.where(
-              :commissionable_type => @commissionable_type, 
-              :commissionable_id => @commissionable_id 
-            ).count.should == 0 
+            @commissionable_list.each do |commissionable_hash|
+              Commission.where(
+                :commissionable_type => commissionable_hash[:commissionable_type],
+                :commissionable_id => commissionable_hash[:commissionable_id]
+              ).count.should == 0 
+            end
+          end
+          
+          it 'should destroy the stock mutation from sub_document' do
+            @stock_mutation_list.each do |stock_mutation_hash|
+              StockMutation.where(
+              :source_document_entry => stock_mutation_hash[:source_document_entry],
+              :source_document_entry_id => stock_mutation_hash[:source_document_entry_id]
+              ).count.should == 0
+            end
+            
           end
         end
-      
-      
-       
       end
     end
     
