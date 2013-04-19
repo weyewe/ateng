@@ -301,6 +301,8 @@ describe "ServiceSalesOrder" do
             @so_entry1.reload 
             @initial_item1_ready = @item1.ready 
             @quantity_consumed = @material_consumption1.usage_option.quantity 
+            @commissionable_type = @so_entry1.class.to_s 
+            @commissionable_id = @so_entry1.id 
             @so_entry1.delete_object 
             @item1.reload 
           end
@@ -316,7 +318,17 @@ describe "ServiceSalesOrder" do
             @so.reload
             @so.active_sales_order_entries.count.should == 0 
           end
+          
+          it 'should destroy the commission' do
+            Commission.where(
+              :commissionable_type => @commissionable_type, 
+              :commissionable_id => @commissionable_id 
+            ).count.should == 0 
+          end
         end
+      
+      
+       
       end
     end
     
