@@ -28,6 +28,7 @@ Ext.application({
 
 
 Ext.onReady(function(){
+	console.log("The shite is ready");
 	Ext.Ajax.on('beforerequest', function(conn, options) {
 		// always include the auth_token.. 
 			var currentUser = Ext.decode( localStorage.getItem('currentUser'));
@@ -46,7 +47,7 @@ Ext.onReady(function(){
 	      return options.headers["X-CSRF-Token"] = content;
 	    }
 	  }, this);
-	
+	console.log("onReady is finished");
 });
 
  

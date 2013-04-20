@@ -1,5 +1,4 @@
 class Api::SessionsController < Api::BaseApiController
-  before_filter :say_moron
   before_filter :authenticate_user!, :except => [:create, :destroy, :say_hi ]
   before_filter :ensure_params_exist, :except => [:say_hi, :destroy, :authenticate_auth_token]
   # skip_before_filter :authenticate_user! #, :only => [:create, :destroy, :say_hi ]
@@ -7,16 +6,12 @@ class Api::SessionsController < Api::BaseApiController
 
   def create
     
-    puts "**********************\n"*10
-    puts "In the create"
+     
     resource = User.find_for_database_authentication(:email => params[:user_login][:email])
-    puts "The resource: #{resource.inspect}"
     return invalid_login_attempt unless resource
     
-    puts "Resurce is valid"
  
     if resource.valid_password?(params[:user_login][:password])
-      puts "The password is valid"
       sign_in(:user, resource)
       resource.ensure_authentication_token!
       render :json=> {:success=>true, 
@@ -27,7 +22,6 @@ class Api::SessionsController < Api::BaseApiController
       return
     end
     
-    puts "The password is invalid"
     invalid_login_attempt
   end
   
@@ -59,15 +53,11 @@ class Api::SessionsController < Api::BaseApiController
  
   protected
   def ensure_params_exist
-    puts "We are inside the ensure params_exist"
     return unless params[:user_login].blank?
-    puts "haiz, params does not exists!!!!!"
     render :json=>{:success=>false, :message=>"missing user_login parameter"}, :status=>422
   end
  
   def invalid_login_attempt
-    puts "888\n"*5
-    puts "Invalid login attempt"
     render :json=> {:success=>false, :message=>"Error with your login or password"}, :status=>401
   end
 end
