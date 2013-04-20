@@ -20,7 +20,6 @@ Ext.define("AM.controller.Authorization", {
 
 	 
 	init : function( application ) {
-		console.log("Authorization Controller init");
 		var me = this; 
 		 
 		me.control({
@@ -29,7 +28,6 @@ Ext.define("AM.controller.Authorization", {
 			} 
 			
 		});
-		console.log("End of authorization controller init");
 	},
 
 
@@ -63,19 +61,7 @@ Ext.define("AM.controller.Authorization", {
 							action  : 'index'
 						}
 					] 
-      },
-			{ 
-          text:'Cash Account', 
-          viewClass:'AM.view.management.CashAccount', 
-          leaf:true, 
-          iconCls:'text' ,
- 					conditions : [
-						{
-							controller : "cash_accounts",
-							action  : 'index'
-						}
-					]
-      }
+      } 
     ]
 	},
 	
