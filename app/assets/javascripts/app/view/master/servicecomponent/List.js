@@ -31,10 +31,6 @@ Ext.define('AM.view.master.servicecomponent.List' ,{
 		});
 
 	 
- 
-
-
-
 		this.tbar = [this.addObjectButton, this.editObjectButton, this.deleteObjectButton ];
 		this.bbar = Ext.create("Ext.PagingToolbar", {
 			store	: this.store, 

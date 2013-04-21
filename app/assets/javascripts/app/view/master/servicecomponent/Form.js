@@ -84,47 +84,6 @@ Ext.define('AM.view.master.servicecomponent.Form', {
 
 	setParentData: function( record ){
 		this.down('form').getForm().findField('service_name').setValue(record.get('name')); 
-	},
-	
-	setSelectedSalesItem: function( sales_item_id ){
-		var comboBox = this.down('form').getForm().findField('sales_item_id'); 
-		var me = this; 
-		var store = comboBox.store; 
-		store.load({
-			params: {
-				selected_id : sales_item_id 
-			},
-			callback : function(records, options, success){
-				me.setLoading(false);
-				comboBox.setValue( sales_item_id );
-			}
-		});
-	},
-	
- 
-	
-	setSelectedItemCondition: function( item_condition ){
-		var comboBox = this.down('form').getForm().findField('item_condition'); 
-		var me = this; 
-		var store = comboBox.store; 
-		store.load({
-			params: {
-				selected_id : item_condition 
-			},
-			callback : function(records, options, success){
-				me.setLoading(false);
-				comboBox.setValue( item_condition );
-			}
-		});
-	},
-	
-	setComboBoxData : function( record){
-		var me = this; 
-		me.setLoading(true);
-		
-		
-		me.setSelectedSalesItem( record.get("sales_item_id")  ) ;
-		me.setSelectedItemCondition( record.get("item_condition")  ) ;
 	}
 });
 

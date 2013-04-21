@@ -2,6 +2,7 @@ Ext.define('AM.model.ServiceComponent', {
   	extend: 'Ext.data.Model',
   	fields: [
     	{ name: 'id', type: 'int' },
+			{ name: 'service_id', type: 'int' } ,
     	{ name: 'name', type: 'string' } ,
 			{ name: 'commission_amount', type: 'string' } 
   	],
