@@ -11,6 +11,10 @@ class ServiceComponent < ActiveRecord::Base
   belongs_to :service  
   
   
+  def active_material_usages
+    self.material_usages.where(:is_deleted => false ).order("id DESC")
+  end
+  
   def self.create_object(params)
     new_object = self.new 
     new_object.name = params[:name]

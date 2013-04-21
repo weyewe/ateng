@@ -37,15 +37,21 @@ Ext.define('AM.view.master.Service', {
 					align : 'stretch'
 				},
 				items: [
+				
+				
 					{
-						xtype : 'panel' ,
-						flex : 1,
-						html : "Tujuan Penggunaan"
+						xtype : 'materialusagelist',
+						flex : 1 
 					},
+					// {
+					// 	xtype : 'panel' ,
+					// 	flex : 1,
+					// 	html : "Jenis Bahan"
+					// },
 					{
 						xtype : 'panel',
 						flex : 1 ,
-						html : "Pilihan Bahan Baku"
+						html : "Pilihan Item"
 					}
 				]
 			}

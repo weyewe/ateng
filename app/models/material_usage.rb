@@ -1,7 +1,6 @@
 class MaterialUsage < ActiveRecord::Base
   include UniqueNonDeleted
   validate :unique_non_deleted_name 
-  validates_presence_of :name, :service_id
   
   has_many :items, :through => :usage_options
   has_many :usage_options 
@@ -11,7 +10,7 @@ class MaterialUsage < ActiveRecord::Base
   
   belongs_to :service
   
-  validates_presence_of :service_component_id, :name, :service_id  
+  validates_presence_of :service_component_id, :name # , :service_id  
   validate :service_component_must_not_be_deleted
   
   def service_component_must_not_be_deleted
@@ -24,8 +23,11 @@ class MaterialUsage < ActiveRecord::Base
     new_object = self.new
     new_object.name = params[:name]
     new_object.service_component_id = params[:service_component_id]
-    new_object.service_id = params[:service_id]
-    new_object.save 
+    
+    if new_object.save 
+      new_object.service_id =  new_object.service_component.service_id 
+      new_object.save 
+    end
     
     return new_object
   end

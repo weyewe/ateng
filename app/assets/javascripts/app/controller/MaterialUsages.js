@@ -1,53 +1,48 @@
-Ext.define('AM.controller.ServiceComponents', {
+Ext.define('AM.controller.MaterialUsages', {
   extend: 'Ext.app.Controller',
 
-  stores: ['ServiceComponents', 'Services'],
-  models: ['ServiceComponent'],
+  stores: ['MaterialUsages', 'ServiceComponents'],
+  models: ['MaterialUsage'],
 
   views: [
-    'master.servicecomponent.List',
-    'master.servicecomponent.Form',
-		'master.service.List',
-		'master.materialusage.List'
+    'master.materialusage.List',
+    'master.materialusage.Form',
+		'master.servicecomponent.List'
   ],
 
   refs: [
 		{
 			ref: 'list',
-			selector: 'servicecomponentlist'
+			selector: 'materialusagelist'
 		},
 		{
 			ref : 'parentList',
-			selector : 'servicelist'
-		},
-		{
-			ref: 'materialUsageList',
-			selector: 'materialusagelist'
-		},
+			selector : 'servicecomponentlist'
+		}
 	],
 
   init: function() {
     this.control({
-      'servicecomponentlist': {
+      'materialusagelist': {
         itemdblclick: this.editObject,
         selectionchange: this.selectionChange ,
 				afterrender : this.loadObjectList
       },
-      'servicecomponentform button[action=save]': {
+      'materialusageform button[action=save]': {
         click: this.updateObject
       },
-      'servicecomponentlist button[action=addObject]': {
+      'materialusagelist button[action=addObject]': {
         click: this.addObject
       },
-      'servicecomponentlist button[action=editObject]': {
+      'materialusagelist button[action=editObject]': {
         click: this.editObject
       },
-      'servicecomponentlist button[action=deleteObject]': {
+      'materialusagelist button[action=deleteObject]': {
         click: this.deleteObject
       },
 
-			// monitor parent(service) update
-			'servicelist' : {
+			// monitor parent(servicecomponent) update
+			'servicecomponentlist' : {
 				'updated' : this.reloadStore,
 				'confirmed' : this.reloadStore,
 				'deleted' : this.cleanList
@@ -62,11 +57,11 @@ Ext.define('AM.controller.ServiceComponents', {
 
 	reloadStore : function(record){
 		var list = this.getList();
-		var store = this.getServiceComponentsStore();
+		var store = this.getMaterialUsagesStore();
 		
 		store.load({
 			params : {
-				service_id : record.get('id')
+				service_component_id : record.get('id')
 			}
 		});
 		
@@ -75,7 +70,7 @@ Ext.define('AM.controller.ServiceComponents', {
 	
 	cleanList : function(){
 		var list = this.getList();
-		var store = this.getServiceComponentsStore();
+		var store = this.getMaterialUsagesStore();
 		
 		list.setTitle('');
 		// store.removeAll(); 
@@ -91,7 +86,7 @@ Ext.define('AM.controller.ServiceComponents', {
 			return; 
 		}
 		 
-    var view = Ext.widget('servicecomponentform', {
+    var view = Ext.widget('materialusageform', {
 			parentRecord : record 
 		});
 		view.setParentData( record );
@@ -106,7 +101,7 @@ Ext.define('AM.controller.ServiceComponents', {
 			return; 
 		}
 
-    var view = Ext.widget('servicecomponentform', {
+    var view = Ext.widget('materialusageform', {
 			parentRecord : parentRecord
 		});
 
@@ -123,7 +118,7 @@ Ext.define('AM.controller.ServiceComponents', {
 
 		var parentRecord = this.getParentList().getSelectedObject();
 	
-    var store = this.getServiceComponentsStore();
+    var store = this.getMaterialUsagesStore();
     var record = form.getRecord();
     var values = form.getValues();
 
@@ -138,7 +133,7 @@ Ext.define('AM.controller.ServiceComponents', {
 			form.setLoading(true);
 			record.save({
 				params : {
-					service_id : parentRecord.get('id')
+					service_component_id : parentRecord.get('id')
 				},
 				success : function(record){
 					form.setLoading(false);
@@ -146,7 +141,7 @@ Ext.define('AM.controller.ServiceComponents', {
 					// form.fireEvent('item_quantity_changed');
 					store.load({
 						params: {
-							service_id : parentRecord.get('id')
+							service_component_id : parentRecord.get('id')
 						}
 					});
 					
@@ -167,7 +162,7 @@ Ext.define('AM.controller.ServiceComponents', {
 			//  no record at all  => gonna create the new one 
 			var me  = this; 
 		
-			var newObject = new AM.model.ServiceComponent( values ) ;
+			var newObject = new AM.model.MaterialUsage( values ) ;
 			
 		 
 			
@@ -183,16 +178,16 @@ Ext.define('AM.controller.ServiceComponents', {
 			form.setLoading(true);
 			newObject.save({
 				params : {
-					service_id : parentRecord.get('id')
+					service_component_id : parentRecord.get('id')
 				},
 				extraParams : {
-					service_id : parentRecord.get('id')
+					service_component_id : parentRecord.get('id')
 				},
 				success: function(record){
 					//  since the grid is backed by store, if store changes, it will be updated
 					store.load({
 						params: {
-							service_id : parentRecord.get('id')
+							service_component_id : parentRecord.get('id')
 						}
 					});
 					// form.fireEvent('item_quantity_changed');
@@ -215,7 +210,7 @@ Ext.define('AM.controller.ServiceComponents', {
 	deleteObject: function() {
     var record = this.getList().getSelectedObject();
 		if(!record){return;}
-		var parent_id = record.get('service_id');
+		var parent_id = record.get('service_component_id');
 		var list  = this.getList();
 		list.setLoading(true); 
 		
@@ -229,7 +224,7 @@ Ext.define('AM.controller.ServiceComponents', {
 					// this.getPurchaseOrdersStore.load();
 					list.getStore().load({
 						params : {
-							service_id : parent_id
+							service_component_id : parent_id
 						}
 					});
 				},
@@ -257,29 +252,7 @@ Ext.define('AM.controller.ServiceComponents', {
   selectionChange: function(selectionModel, selections) {
     var grid = this.getList();
 
-		var record = this.getList().getSelectedObject();
-		
-		if(!record){
-			return; 
-		}
-		var materialUsageGrid = this.getMaterialUsageList();
-		// serviceComponentGrid.setTitle("Purchase Order: " + record.get('code'));
-		materialUsageGrid.setObjectTitle( record ) ;
-		materialUsageGrid.getStore().load({
-			params : {
-				service_component_id : record.get('id')
-			},
-			callback : function(records, options, success){
-				
-				var totalObject  = records.length;
-				if( totalObject ===  0 ){
-					materialUsageGrid.enableRecordButtons(); 
-				}else{
-					materialUsageGrid.enableRecordButtons(); 
-				}
-			}
-		});
-		
+		// var record = this.getList().getSelectedObject();
 
     if (selections.length > 0) {
       grid.enableRecordButtons();
