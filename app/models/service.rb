@@ -24,6 +24,10 @@ class Service < ActiveRecord::Base
     self.service_components.where(:is_deleted => false ).order("id DESC")
   end
   
+  def self.active_objects
+    self.where(:is_deleted => false ).order("id DESC")
+  end
+  
   def self.create_object(  params ) 
     
     new_object               = self.new  

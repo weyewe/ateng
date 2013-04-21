@@ -230,3 +230,4 @@ customer_1 = Customer.create_object( {
   :name => "Dixzell"
 } )
  
+ 
