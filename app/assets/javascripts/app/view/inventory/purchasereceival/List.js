@@ -9,7 +9,7 @@ Ext.define('AM.view.inventory.purchasereceival.List' ,{
 		this.columns = [
 			{ header: 'ID', dataIndex: 'id'},
 			{ header: ' Code',  dataIndex: 'code',  flex: 1 , sortable: false},
-			{ header: ' Vendor',  dataIndex: 'vendor_name',  flex: 1 , sortable: false},
+			{ header: ' Supplier',  dataIndex: 'supplier_name',  flex: 1 , sortable: false},
 			{ header: ' Confirmed?',  dataIndex: 'is_confirmed',  flex: 1 , sortable: false},
 		];
 

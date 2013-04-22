@@ -56,9 +56,10 @@ Ext.define('AM.controller.PurchaseOrders', {
 		var me  = this;
 		var record = this.getList().getSelectedObject();
 		var list = this.getList();
-		me.getViewport().setLoading( true ) ;
+		
 		
 		if(!record){return;}
+		me.getViewport().setLoading( true ) ;
 		
 		Ext.Ajax.request({
 		    url: 'api/confirm_purchase_order',

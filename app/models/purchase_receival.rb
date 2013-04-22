@@ -16,15 +16,16 @@ class PurchaseReceival < ActiveRecord::Base
   
   def delete 
 
-    self.purchase_receival_entries.each do |entry|
-      entry.delete 
-    end
-   
     if self.is_confirmed?
       self.is_deleted = true 
       self.save 
+      
     else
       self.destroy
+    end
+    
+    self.purchase_receival_entries.each do |entry|
+      entry.delete_object 
     end
   end
   

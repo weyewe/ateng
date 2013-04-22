@@ -116,6 +116,7 @@ class PurchaseReceivalEntry < ActiveRecord::Base
       self.is_deleted = true 
       self.save
       StockMutation.delete_object( self )  
+      # StockEntry.delete_object( self, stock_mutation)
       
     end
   end
