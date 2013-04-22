@@ -35,6 +35,10 @@ class SalesOrder < ActiveRecord::Base
     end
   end
   
+  def self.active_objects
+    self.where(:is_deleted => false).order("id DESC")
+  end
+  
   def self.create_object( params  )  
     new_object  = self.new
     new_object.customer_id = params[:customer_id]
@@ -112,9 +116,20 @@ class SalesOrder < ActiveRecord::Base
   end
   
   def delete 
-    return nil if self.is_confirmed? 
-    self.is_deleted = true 
-    self.save 
+    
+    if self.is_confirmed?
+      self.is_deleted = true 
+      self.save
+      self.sales_order_entries.each do |soe|
+        soe.delete_object 
+      end
+    else
+      self.sales_order_entries.each do |soe|
+        soe.delete_object 
+      end
+      self.destroy 
+    end
+ 
   end
    
 end

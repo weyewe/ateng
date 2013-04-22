@@ -43,5 +43,9 @@ Ateng::Application.routes.draw do
     resources :purchase_receivals 
     match 'confirm_purchase_receival' => 'purchase_receivals#confirm' , :as => :confirm_purchase_receival, :method => :post 
     resources :purchase_receival_entries 
+    
+    resources :sales_orders 
+    match 'confirm_sales_order' => 'sales_orders#confirm' , :as => :confirm_sales_order, :method => :post 
+    resources :sales_order_entries
   end
 end
