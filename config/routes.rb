@@ -14,6 +14,9 @@ Ateng::Application.routes.draw do
     resources :employees
     match 'search_employee' => 'employees#search', :as => :search_employee, :method => :get
     
+    resources :customers
+    match 'search_customer' => 'customers#search', :as => :search_customer, :method => :get
+    
     resources :app_users 
     
     resources :services
