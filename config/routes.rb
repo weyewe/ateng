@@ -27,5 +27,6 @@ Ateng::Application.routes.draw do
     
     resources :items
     match 'search_item' => 'items#search', :as => :search_item, :method => :get  
+    resources :stock_migrations 
   end
 end

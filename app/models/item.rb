@@ -39,7 +39,7 @@ class Item < ActiveRecord::Base
   
  
   
-  def delete 
+  def delete_object
     self.is_deleted = true
     self.save 
   end

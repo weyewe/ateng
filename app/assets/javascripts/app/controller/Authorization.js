@@ -66,7 +66,7 @@ Ext.define("AM.controller.Authorization", {
 	},
 	
 	masterFolder : {
-		text 			: "Service", 
+		text 			: "Master Data", 
 		viewClass : '',
 		iconCls		: 'text-folder', 
     expanded	: true,
@@ -83,19 +83,7 @@ Ext.define("AM.controller.Authorization", {
 							action  : 'index'
 						}
 					]
-      },
-      { 
-          text:'User', 
-          viewClass:'AM.view.management.User', 
-          leaf:true, 
-          iconCls:'text',
- 					conditions : [
-						{
-							controller : "users",
-							action  : 'index'
-						}
-					] 
-      } 
+      }
     ]
 	},
 	
@@ -105,18 +93,18 @@ Ext.define("AM.controller.Authorization", {
     iconCls:'text-folder', 
     expanded: true,
 		children : [
-			{ 
-				text:'Material', 
-				viewClass:'AM.view.inventory.Material', 
-				leaf:true, 
-				iconCls:'text',
-				conditions : [
-					{
-						controller : 'materials',
-						action : 'index'
-					}
-				]
-	     }
+  	  { 
+	        text:'Item', 
+	        viewClass:'AM.view.inventory.Item', 
+	        leaf:true, 
+	        iconCls:'text',
+					conditions : [
+						{
+							controller : "items",
+							action  : 'index'
+						}
+					] 
+	    } 
 		]
 	},
 	

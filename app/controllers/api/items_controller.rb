@@ -7,9 +7,7 @@ class Api::ItemsController < Api::BaseApiController
       @objects = Item.where{
         (is_deleted.eq false) & 
         (
-          (name =~  livesearch ) | 
-          (supplier_code =~ livesearch) | 
-          (customer_code =~ livesearch)
+          (name =~  livesearch )  
         )
         
       }.page(params[:page]).per(params[:limit]).order("id DESC")
@@ -17,9 +15,7 @@ class Api::ItemsController < Api::BaseApiController
       @total = Item.where{
         (is_deleted.eq false) & 
         (
-          (name =~  livesearch ) | 
-          (supplier_code =~ livesearch) | 
-          (customer_code =~ livesearch)
+          (name =~  livesearch )  
         )
       }.count
     else
@@ -32,7 +28,7 @@ class Api::ItemsController < Api::BaseApiController
   end
 
   def create
-    @object = Item.create_by_employee(current_user,  params[:item] )  
+    @object = Item.create_object(   params[:item] )  
     
     
  
@@ -55,7 +51,7 @@ class Api::ItemsController < Api::BaseApiController
   def update
     
     @object = Item.find_by_id params[:id] 
-    @object.update_by_employee(current_user,  params[:item])
+    @object.update_object(   params[:item])
      
     if @object.errors.size == 0 
       render :json => { :success => true,   
@@ -75,7 +71,7 @@ class Api::ItemsController < Api::BaseApiController
 
   def destroy
     @object = Item.find(params[:id])
-    @object.delete(current_user)
+    @object.delete_object 
 
     if @object.is_deleted
       render :json => { :success => true, :total => Item.active_objects.count }  

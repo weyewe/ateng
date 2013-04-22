@@ -74,6 +74,11 @@ class StockMigration < ActiveRecord::Base
   # auto confirm the stock migration 
   def self.create_object( params )
     new_object              = StockMigration.new 
+    if params[:item_id].present?  and StockMigration.where(:item_id => params[:item_id]).count != 0 
+      new_object.errors.add(:quantity , "Tidak boleh ada stock migration ganda" )  
+      return new_object
+    end
+    
     new_object.item_id      = params[:item_id]
     new_object.quantity     = params[:quantity]
     new_object.average_cost = BigDecimal( params[:average_cost] )
