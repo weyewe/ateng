@@ -7,7 +7,7 @@ class PurchaseOrderEntry < ActiveRecord::Base
   # attr_accessible :title, :body
   belongs_to :purchase_order
   belongs_to :item 
-  belongs_to :vendor 
+  belongs_to :supplier 
   has_many :purchase_receival_entries 
     
   

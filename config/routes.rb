@@ -25,8 +25,20 @@ Ateng::Application.routes.draw do
     resources :material_usages 
     resources :usage_options
     
+    resources :suppliers 
+    match 'search_supplier' => 'suppliers#search', :as => :search_supplier, :method => :get
+    
     resources :items
     match 'search_item' => 'items#search', :as => :search_item, :method => :get  
     resources :stock_migrations 
+    
+    resources :purchase_orders
+    match 'confirm_purchase_order' => 'purchase_orders#confirm' , :as => :confirm_purchase_order, :method => :post 
+    resources :purchase_order_entries 
+    match 'search_purchase_order_entry' => 'purchase_order_entries#search', :as => :search_purchase_order_entries, :method => :get
+    
+    resources :purchase_receivals 
+    match 'confirm_purchase_receival' => 'purchase_receivals#confirm' , :as => :confirm_purchase_receival, :method => :post 
+    resources :purchase_receival_entries 
   end
 end

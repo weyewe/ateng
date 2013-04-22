@@ -93,8 +93,21 @@ Ext.define("AM.controller.Authorization", {
     iconCls:'text-folder', 
     expanded: true,
 		children : [
+			{ 
+	        text:'Supplier', 
+	        viewClass:'AM.view.inventory.Supplier', 
+	        leaf:true, 
+	        iconCls:'text',
+					conditions : [
+						{
+							controller : "suppliers",
+							action  : 'index'
+						}
+					] 
+	    },
+
   	  { 
-	        text:'Item', 
+	        text:'Item + Stock Awal', 
 	        viewClass:'AM.view.inventory.Item', 
 	        leaf:true, 
 	        iconCls:'text',
@@ -104,7 +117,31 @@ Ext.define("AM.controller.Authorization", {
 							action  : 'index'
 						}
 					] 
-	    } 
+	    } ,
+			{ 
+	        text:'Pembelian', 
+	        viewClass:'AM.view.inventory.PurchaseOrder', 
+	        leaf:true, 
+	        iconCls:'text',
+					conditions : [
+						{
+							controller : "purchase_orders",
+							action  : 'index'
+						}
+					] 
+	    },
+			{ 
+	        text:'Penerimaan', 
+	        viewClass:'AM.view.inventory.PurchaseReceival', 
+	        leaf:true, 
+	        iconCls:'text',
+					conditions : [
+						{
+							controller : "purchase_receivals",
+							action  : 'index'
+						}
+					] 
+	    },
 		]
 	},
 	
