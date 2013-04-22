@@ -5,8 +5,8 @@ Ext.define('AM.model.SalesOrderEntry', {
     	{ name: 'code', type: 'string' } ,
 			{ name: 'sales_order_code', type: 'string' },
 			{ name: 'sales_order_id', type: 'int' },
-			{ name: 'item_name', type: 'string'},
-			{ name: 'item_id', type: 'id'},
+			{ name: 'sellable_name', type: 'string'},
+			{ name: 'sellable_id', type: 'id'},
 			{ name: 'quantity',type: 'int'}
   	],
 

@@ -13,8 +13,14 @@ Ext.define('AM.view.sales.salesorderentry.List' ,{
 		];
 
 		this.addObjectButton = new Ext.Button({
-			text: 'Add',
+			text: 'Add Item',
 			action: 'addObject',
+			disabled : true 
+		});
+		
+		this.addServiceObjectButton = new Ext.Button({
+			text: 'Add Service',
+			action: 'addServiceObject',
 			disabled : true 
 		});
 
@@ -35,7 +41,7 @@ Ext.define('AM.view.sales.salesorderentry.List' ,{
 
 
 
-		this.tbar = [this.addObjectButton, this.editObjectButton, this.deleteObjectButton ];
+		this.tbar = [this.addObjectButton, this.addServiceObjectButton, this.editObjectButton, this.deleteObjectButton ];
 		this.bbar = Ext.create("Ext.PagingToolbar", {
 			store	: this.store, 
 			displayInfo: true,
@@ -54,12 +60,14 @@ Ext.define('AM.view.sales.salesorderentry.List' ,{
 
 	enableRecordButtons: function() {
 		this.addObjectButton.enable();
+		this.addServiceObjectButton.enable();
 		this.editObjectButton.enable();
 		this.deleteObjectButton.enable();
 	},
 
 	disableRecordButtons: function() {
 		this.addObjectButton.disable();
+		this.addServiceObjectButton.disable();
 		this.editObjectButton.disable();
 		this.deleteObjectButton.disable();
 	},

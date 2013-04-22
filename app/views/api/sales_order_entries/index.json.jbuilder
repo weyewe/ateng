@@ -6,8 +6,8 @@ json.sales_order_entries @objects do |object|
 	json.code 			object.code
 	json.id 				object.id 
 	
-	json.item_name 				object.item.name  
-	json.item_id 				object.item_id
+	json.sellable_name 				object.sellable.name  
+	json.sellable_id 				object.sellable.id
 	json.quantity 				object.quantity
 	
 	json.is_confirmed object.is_confirmed 
