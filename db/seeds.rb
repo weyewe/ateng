@@ -231,3 +231,55 @@ customer_1 = Customer.create_object( {
 } )
  
  
+10.times.each do |x|
+  @selling_price = "100000"
+  @item_name = "Test Item"
+  @commission_amount = '10000'
+  @item1  = Item.create_object(  {
+    :name          =>  "#{@item_name} #{x}" ,
+    :selling_price => @selling_price,
+    :commission_amount => @commission_amount 
+    })
+end
+
+@item1 = Item.first 
+@item2 = Item.last 
+
+@service_name = 'First Service'
+@selling_price = '120000'
+@service = Service.create_object({
+  :name => @service_name,
+  :selling_price => @selling_price
+})
+
+# => create service component 
+@service_component_name1 = 'service component 1'
+@commission_amount1 = '12000'
+@service_component1 = ServiceComponent.create_object({
+  :name => @service_component_name1 ,
+  :service_id => @service.id ,
+  :commission_amount => @commission_amount1
+})
+
+@material_usage_name1 = "Material Usage Name"
+@material_usage1 = MaterialUsage.create_object({
+  :name =>  @material_usage_name1 ,
+  :service_component_id => @service_component1.id ,
+  :service_id => @service.id
+})
+
+@mu1_usage_quantity1 = 2 
+@mu1_usage_option1 = UsageOption.create_object({
+  :service_component_id => @service_component1.id , 
+  :material_usage_id    => @material_usage1.id ,
+  :item_id              => @item1.id , 
+  :quantity             => @mu1_usage_quantity1
+})
+
+@mu1_usage_quantity2 = 1 
+@mu1_usage_option2 = UsageOption.create_object({
+  :service_component_id => @service_component1.id , 
+  :material_usage_id    => @material_usage1.id ,
+  :item_id              => @item2.id , 
+  :quantity             => @mu1_usage_quantity2
+})

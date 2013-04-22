@@ -23,5 +23,9 @@ Ateng::Application.routes.draw do
     match 'search_service_component' => 'service_components#search', :as => :search_service_component, :method => :get
     
     resources :material_usages 
+    resources :usage_options
+    
+    resources :items
+    match 'search_item' => 'items#search', :as => :search_item, :method => :get  
   end
 end

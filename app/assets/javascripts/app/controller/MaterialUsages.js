@@ -7,7 +7,8 @@ Ext.define('AM.controller.MaterialUsages', {
   views: [
     'master.materialusage.List',
     'master.materialusage.Form',
-		'master.servicecomponent.List'
+		'master.servicecomponent.List',
+		'master.service.List',
   ],
 
   refs: [
@@ -18,6 +19,10 @@ Ext.define('AM.controller.MaterialUsages', {
 		{
 			ref : 'parentList',
 			selector : 'servicecomponentlist'
+		},
+		{
+			ref : 'usageOptionList',
+			selector : 'usageoptionlist'
 		}
 	],
 
@@ -41,8 +46,15 @@ Ext.define('AM.controller.MaterialUsages', {
         click: this.deleteObject
       },
 
+			'servicelist' : {
+				'deleted' : this.cleanList,
+				'selectionchange' : this.cleanList
+			},
+			
+			
 			// monitor parent(servicecomponent) update
 			'servicecomponentlist' : {
+				'selectionchange' : this.cleanList, 
 				'updated' : this.reloadStore,
 				'confirmed' : this.reloadStore,
 				'deleted' : this.cleanList
@@ -75,6 +87,7 @@ Ext.define('AM.controller.MaterialUsages', {
 		list.setTitle('');
 		// store.removeAll(); 
 		store.loadRecords([], {addRecords: false});
+		this.getList().disableRecordButtons();
 	},
  
 
@@ -109,7 +122,7 @@ Ext.define('AM.controller.MaterialUsages', {
 		view.setParentData( parentRecord );
 		// console.log("selected record id: " + record.get('id'));
 		// console.log("The selected poe id: " + record.get('purchase_order_entry_id'));
-		view.setComboBoxData(record); 
+		// view.setComboBoxData(record); 
   },
 
   updateObject: function(button) {
@@ -212,6 +225,12 @@ Ext.define('AM.controller.MaterialUsages', {
 		if(!record){return;}
 		var parent_id = record.get('service_component_id');
 		var list  = this.getList();
+		
+		
+		
+		// list.fireEvent("deleted");
+		// return; 
+		
 		list.setLoading(true); 
 		
     if (record) {
@@ -227,6 +246,7 @@ Ext.define('AM.controller.MaterialUsages', {
 							service_component_id : parent_id
 						}
 					});
+					list.fireEvent("deleted");
 				},
 				failure : function(record,op ){
 					list.setLoading(false);
@@ -252,7 +272,28 @@ Ext.define('AM.controller.MaterialUsages', {
   selectionChange: function(selectionModel, selections) {
     var grid = this.getList();
 
-		// var record = this.getList().getSelectedObject();
+		var record = this.getList().getSelectedObject();
+		
+		if(!record){
+			return; 
+		}
+		var usageOptionGrid = this.getUsageOptionList();
+		// serviceComponentGrid.setTitle("Purchase Order: " + record.get('code'));
+		usageOptionGrid.setObjectTitle( record ) ;
+		usageOptionGrid.getStore().load({
+			params : {
+				material_usage_id : record.get('id')
+			},
+			callback : function(records, options, success){
+				
+				var totalObject  = records.length;
+				if( totalObject ===  0 ){
+					usageOptionGrid.enableRecordButtons(); 
+				}else{
+					usageOptionGrid.enableRecordButtons(); 
+				}
+			}
+		});
 
     if (selections.length > 0) {
       grid.enableRecordButtons();

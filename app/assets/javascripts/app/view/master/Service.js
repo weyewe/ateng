@@ -43,16 +43,23 @@ Ext.define('AM.view.master.Service', {
 						xtype : 'materialusagelist',
 						flex : 1 
 					},
+					
+					{
+						xtype : 'usageoptionlist',
+						flex : 1 
+					},
+					
+					
 					// {
 					// 	xtype : 'panel' ,
 					// 	flex : 1,
 					// 	html : "Jenis Bahan"
 					// },
-					{
-						xtype : 'panel',
-						flex : 1 ,
-						html : "Pilihan Item"
-					}
+					// {
+					// 	xtype : 'panel',
+					// 	flex : 1 ,
+					// 	html : "Pilihan Item"
+					// }
 				]
 			}
 		]

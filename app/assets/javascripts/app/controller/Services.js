@@ -152,12 +152,17 @@ Ext.define('AM.controller.Services', {
   deleteObject: function() {
     var record = this.getList().getSelectedObject();
 
+		// this.getList().fireEvent("deleted");
+		// return; 
+		
     if (record) {
       var store = this.getServicesStore();
       store.remove(record);
       store.sync();
 // to do refresh programmatically
 			this.getList().query('pagingtoolbar')[0].doRefresh();
+			
+			this.getList().fireEvent("deleted");
     }
 
   },
@@ -187,6 +192,7 @@ Ext.define('AM.controller.Services', {
 			}
 		});
 		
+		// this.getList().fireEvent("selectionchange");
 		
     if (selections.length > 0) {
       grid.enableRecordButtons();

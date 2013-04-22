@@ -2,10 +2,10 @@ class UsageOption < ActiveRecord::Base
   belongs_to :material_usage 
   belongs_to :item 
   belongs_to :service_component
-  validates_presence_of :service_component_id, :material_usage_id, :item_id, :quantity 
+  validates_presence_of :material_usage_id, :item_id, :quantity 
   
   validate :item_is_not_deleted,
-            :service_component_is_not_deleted, 
+            # :service_component_is_not_deleted, 
             :material_usage_is_not_deleted, 
             :quantity_is_more_than_zero 
   
@@ -15,12 +15,12 @@ class UsageOption < ActiveRecord::Base
     end
   end
   
-  def service_component_is_not_deleted
-    if  self.service_component_id.present? and self.service_component.is_deleted == true 
-      self.errors.add(:service_component_id , "Service Component #{self.service_component.name} sudah tidak aktif." + 
-                                              " Pilih service_component yang aktif");
-    end
-  end
+  # def service_component_is_not_deleted
+  #   if  self.service_component_id.present? and self.service_component.is_deleted == true 
+  #     self.errors.add(:service_component_id , "Service Component #{self.service_component.name} sudah tidak aktif." + 
+  #                                             " Pilih service_component yang aktif");
+  #   end
+  # end
   
   def material_usage_is_not_deleted
     if  self.material_usage_id.present? and self.material_usage.is_deleted == true 
@@ -38,12 +38,16 @@ class UsageOption < ActiveRecord::Base
   
   def self.create_object( params ) 
     new_object = self.new 
-    new_object.service_component_id = params[:service_component_id]
+    # new_object.service_component_id = params[:service_component_id]
     new_object.material_usage_id    = params[:material_usage_id]
     new_object.item_id              = params[:item_id]
     new_object.quantity             = params[:quantity]
 
-    new_object.save
+    if new_object.save
+      service_component = new_object.material_usage.service_component 
+      new_object.service_component_id = service_component.id
+      new_object.save 
+    end
     
     return new_object 
   end
@@ -53,7 +57,6 @@ class UsageOption < ActiveRecord::Base
     is_quantity_changed       = (self.quantity != params[:quantity])? true : false 
     is_material_usage_changed = (self.material_usage_id != params[:material_usage_id])? true : false 
     
-    self.service_component_id = params[:service_component_id]
     self.material_usage_id = params[:material_usage_id]
     self.item_id = params[:item_id]
     self.quantity = params[:quantity]

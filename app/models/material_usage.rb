@@ -19,6 +19,11 @@ class MaterialUsage < ActiveRecord::Base
     end
   end
   
+  
+  def active_usage_options
+    self.usage_options.order("id DESC")
+  end
+  
   def self.create_object( params ) 
     new_object = self.new
     new_object.name = params[:name]
@@ -49,7 +54,7 @@ class MaterialUsage < ActiveRecord::Base
   end
   
   def has_sub_documents?
-    self.usage_options.where(:is_deleted => false ).length != 0  
+    self.usage_options.length != 0  
   end
   
   def delete_object 
