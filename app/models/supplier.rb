@@ -14,7 +14,7 @@ class Supplier < ActiveRecord::Base
     self.where(:is_deleted => false).order("created_at DESC")
   end
   
-  def delete( employee )
+  def delete_object
     self.is_deleted = true
     self.save
   end

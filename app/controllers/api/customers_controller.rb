@@ -52,7 +52,7 @@ class Api::CustomersController < Api::BaseApiController
 
   def destroy
     @object = Customer.find(params[:id])
-    @object.delete 
+    @object.delete_object 
 
     if @object.is_deleted
       render :json => { :success => true, :total => Customer.active_objects.count }  

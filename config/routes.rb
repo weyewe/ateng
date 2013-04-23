@@ -47,5 +47,8 @@ Ateng::Application.routes.draw do
     resources :sales_orders 
     match 'confirm_sales_order' => 'sales_orders#confirm' , :as => :confirm_sales_order, :method => :post 
     resources :sales_order_entries
+    
+    resources :service_executions 
+    resources :material_consumptions 
   end
 end

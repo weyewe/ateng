@@ -30,7 +30,7 @@ class User < ActiveRecord::Base
     self.where(:is_deleted => false).order("id DESC")
   end
   
-  def delete(employee)
+  def delete_object 
     return nil if employee.nil?
     
     random_password                    = UUIDTools::UUID.timestamp_create.to_s[0..7]

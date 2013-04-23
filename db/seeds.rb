@@ -233,7 +233,7 @@ customer_1 = Customer.create_object( {
 10.times.each do |x|
 
   @employee  = Employee.create_object(  {
-    :name          =>  "#{@Karyawan} #{x}"  
+    :name          =>  "Karyawan #{x}"  
     })
 end
 

@@ -66,38 +66,38 @@ class Api::ServiceComponentsController < Api::BaseApiController
     end
   end
   
-  # def search
-  #   search_params = params[:query]
-  #   selected_id = params[:selected_id]
-  #   if params[:selected_id].nil?  or params[:selected_id].length == 0 
-  #     selected_id = nil
-  #   end
-  #   
-  #   customer_id = params[:customer_id]
-  #   
-  #   query = "%#{search_params}%"
-  #   # on PostGre SQL, it is ignoring lower case or upper case 
-  #   
-  #   if  selected_id.nil?
-  #     @objects = ServiceComponent.joins(  :service ).where{ (template_service_component.name =~ query )   & 
-  #                               (is_deleted.eq false )  & 
-  #                               (service.customer_id.eq customer_id)
-  #                             }.
-  #                       page(params[:page]).
-  #                       per(params[:limit]).
-  #                       order("id DESC")
-  #   else
-  #     @objects = ServiceComponent.joins( :service).where{ (id.eq selected_id)  & 
-  #                               (is_deleted.eq false ) & 
-  #                               (service.customer_id.eq customer_id)
-  #                             }.
-  #                       page(params[:page]).
-  #                       per(params[:limit]).
-  #                       order("id DESC")
-  #   end
-  #   
-  #   @total = @objects.count
-  #   @success = true 
-  #   # render :json => { :records => @objects , :total => @objects.count, :success => true }
-  # end
+  def search
+    search_params = params[:query]
+    selected_id = params[:selected_id]
+    if params[:selected_id].nil?  or params[:selected_id].length == 0 
+      selected_id = nil
+    end
+    
+    selected_service_id = params[:service_id]
+    
+    query = "%#{search_params}%"
+    # on PostGre SQL, it is ignoring lower case or upper case 
+    
+    if  selected_id.nil?
+      @objects = ServiceComponent.where{ (name =~ query )   & 
+                                (is_deleted.eq false )  & 
+                                (service_id.eq selected_service_id ) 
+                              }.
+                        page(params[:page]).
+                        per(params[:limit]).
+                        order("id DESC")
+    else
+      @objects = ServiceComponent.where{ (id.eq selected_id)  & 
+                                (is_deleted.eq false )   & 
+                                (service_id.eq selected_service_id ) 
+                              }.
+                        page(params[:page]).
+                        per(params[:limit]).
+                        order("id DESC")
+    end
+    
+    @total = @objects.count
+    @success = true 
+    render :json => { :records => @objects , :total => @objects.count, :success => true }
+  end
 end

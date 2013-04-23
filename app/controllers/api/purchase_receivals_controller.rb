@@ -50,7 +50,7 @@ class Api::PurchaseReceivalsController < Api::BaseApiController
 
   def destroy
     @object = PurchaseReceival.find(params[:id])
-    @object.delete
+    @object.delete_object
 
     if ( @object.is_confirmed? and @object.is_deleted) or (  not @object.is_confirmed? and not @object.persisted?)  
       render :json => { :success => true, :total => PurchaseReceival.active_objects.count }  

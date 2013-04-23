@@ -115,7 +115,7 @@ class SalesOrder < ActiveRecord::Base
     end 
   end
   
-  def delete 
+  def delete_object
     
     if self.is_confirmed?
       self.is_deleted = true 

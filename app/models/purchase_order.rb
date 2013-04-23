@@ -18,7 +18,7 @@ class PurchaseOrder < ActiveRecord::Base
     self.where(:is_deleted => false ).order("created_at DESC")
   end
   
-  def delete 
+  def delete_object
     if self.is_confirmed? 
       ActiveRecord::Base.transaction do
         self.post_confirm_delete

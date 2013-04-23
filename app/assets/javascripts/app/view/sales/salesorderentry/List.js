@@ -9,7 +9,7 @@ Ext.define('AM.view.sales.salesorderentry.List' ,{
 		this.columns = [
 		
 	 
-		
+			
 		
 			{
 				xtype : 'templatecolumn',
@@ -17,7 +17,6 @@ Ext.define('AM.view.sales.salesorderentry.List' ,{
 				flex : 1,
 				dataIndex : 'sellable_name',
 				tpl : '{sellable_name}'  
-				
 			}, 
 			
 			{

@@ -210,42 +210,42 @@ Ext.define("AM.controller.Authorization", {
 					}
 				]
 			},
-			{ 
-				text:'Pengiriman', 
-				viewClass:'AM.view.sales.Delivery', 
-				leaf:true, 
-				iconCls:'text' ,
-				conditions : [
-					{
-						controller : 'deliveries',
-						action : 'index'
-					}
-				]
-			},
-			{ 
-				text:'Sales Return', 
-				viewClass:'AM.view.sales.SalesReturn', 
-				leaf:true, 
-				iconCls:'text' ,
-				conditions : [
-					{
-						controller : 'sales_returns',
-						action : 'index'
-					}
-				]
-			},
-			{ 
-				text:'Guarantee Return', 
-				viewClass:'AM.view.sales.GuaranteeReturn', 
-				leaf:true, 
-				iconCls:'text' ,
-				conditions : [
-					{
-						controller : 'guarantee_returns',
-						action : 'index'
-					}
-				]
-			}
+			// { 
+			// 	text:'Pengiriman', 
+			// 	viewClass:'AM.view.sales.Delivery', 
+			// 	leaf:true, 
+			// 	iconCls:'text' ,
+			// 	conditions : [
+			// 		{
+			// 			controller : 'deliveries',
+			// 			action : 'index'
+			// 		}
+			// 	]
+			// },
+			// { 
+			// 	text:'Sales Return', 
+			// 	viewClass:'AM.view.sales.SalesReturn', 
+			// 	leaf:true, 
+			// 	iconCls:'text' ,
+			// 	conditions : [
+			// 		{
+			// 			controller : 'sales_returns',
+			// 			action : 'index'
+			// 		}
+			// 	]
+			// },
+			// { 
+			// 	text:'Guarantee Return', 
+			// 	viewClass:'AM.view.sales.GuaranteeReturn', 
+			// 	leaf:true, 
+			// 	iconCls:'text' ,
+			// 	conditions : [
+			// 		{
+			// 			controller : 'guarantee_returns',
+			// 			action : 'index'
+			// 		}
+			// 	]
+			// }
 		]
 		
 	},
@@ -462,7 +462,7 @@ Ext.define("AM.controller.Authorization", {
 			this.managementFolder,
 			this.masterFolder,
 			this.inventoryFolder,
-			this.factoryFolder, 
+			// this.factoryFolder, 
 			this.salesFolder, 
 			this.paymentFolder 
 		];

@@ -50,7 +50,7 @@ class Api::SuppliersController < Api::BaseApiController
 
   def destroy
     @object = Supplier.find(params[:id])
-    @object.delete(current_user)
+    @object.delete_object
 
     if @object.is_deleted
       render :json => { :success => true, :total => Supplier.active_objects.count }  

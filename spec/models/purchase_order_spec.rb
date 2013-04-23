@@ -281,7 +281,7 @@ describe PurchaseOrder do
         it 'should allow deletion' do
           initial_pending_receival1 = @item1.pending_receival
           quantity = @po_entry1.quantity 
-          @po_entry1.delete 
+          @po_entry1.delete_object
           
           @item1.reload 
           final_pending_receival1 = @item1.pending_receival

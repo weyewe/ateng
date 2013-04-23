@@ -281,7 +281,7 @@ Ext.define('AM.controller.ServiceComponents', {
 				
 				var totalObject  = records.length;
 				if( totalObject ===  0 ){
-					materialUsageGrid.enableRecordButtons(); 
+					materialUsageGrid.disableRecordButtons(); 
 				}else{
 					materialUsageGrid.enableRecordButtons(); 
 				}

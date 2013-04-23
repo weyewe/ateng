@@ -68,38 +68,38 @@ class Api::UsageOptionsController < Api::BaseApiController
     end
   end
   
-  # def search
-  #   search_params = params[:query]
-  #   selected_id = params[:selected_id]
-  #   if params[:selected_id].nil?  or params[:selected_id].length == 0 
-  #     selected_id = nil
-  #   end
-  #   
-  #   customer_id = params[:customer_id]
-  #   
-  #   query = "%#{search_params}%"
-  #   # on PostGre SQL, it is ignoring lower case or upper case 
-  #   
-  #   if  selected_id.nil?
-  #     @objects = UsageOption.joins(  :material_usage ).where{ (template_usage_option.name =~ query )   & 
-  #                               (is_deleted.eq false )  & 
-  #                               (material_usage.customer_id.eq customer_id)
-  #                             }.
-  #                       page(params[:page]).
-  #                       per(params[:limit]).
-  #                       order("id DESC")
-  #   else
-  #     @objects = UsageOption.joins( :material_usage).where{ (id.eq selected_id)  & 
-  #                               (is_deleted.eq false ) & 
-  #                               (material_usage.customer_id.eq customer_id)
-  #                             }.
-  #                       page(params[:page]).
-  #                       per(params[:limit]).
-  #                       order("id DESC")
-  #   end
-  #   
-  #   @total = @objects.count
-  #   @success = true 
-  #   # render :json => { :records => @objects , :total => @objects.count, :success => true }
-  # end
+  def search
+    search_params = params[:query]
+    selected_id = params[:selected_id]
+    if params[:selected_id].nil?  or params[:selected_id].length == 0 
+      selected_id = nil
+    end
+    
+    customer_id = params[:customer_id]
+    
+    query = "%#{search_params}%"
+    # on PostGre SQL, it is ignoring lower case or upper case 
+    
+    if  selected_id.nil?
+      @objects = UsageOption.joins(  :material_usage , :item).where{ (item.name =~ query )   & 
+                                (is_deleted.eq false )  & 
+                                (material_usage.customer_id.eq customer_id)
+                              }.
+                        page(params[:page]).
+                        per(params[:limit]).
+                        order("id DESC")
+    else
+      @objects = UsageOption.joins( :material_usage).where{ (id.eq selected_id)  & 
+                                (is_deleted.eq false ) & 
+                                (material_usage.customer_id.eq customer_id)
+                              }.
+                        page(params[:page]).
+                        per(params[:limit]).
+                        order("id DESC")
+    end
+    
+    @total = @objects.count
+    @success = true 
+    # render :json => { :records => @objects , :total => @objects.count, :success => true }
+  end
 end

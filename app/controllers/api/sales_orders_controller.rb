@@ -50,7 +50,7 @@ class Api::SalesOrdersController < Api::BaseApiController
 
   def destroy
     @object = SalesOrder.find(params[:id])
-    @object.delete 
+    @object.delete_object
 
     if  ( @object.is_confirmed? and @object.is_deleted)  or  (   not @object.persisted?)
       render :json => { :success => true, :total => SalesOrder.active_objects.count }  

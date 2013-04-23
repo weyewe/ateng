@@ -41,15 +41,13 @@ Ext.define('AM.view.sales.SalesOrder', {
 				
 				
 					{
-						xtype : 'panel',
-						flex : 1 ,
-						html : 'the service execution'
+						xtype : 'serviceexecutionlist',
+						flex : 1  
 					},
 					
 					{
-						xtype : 'panel',
-						flex : 1 ,
-						html : "The service material consumption"
+						xtype : 'materialconsumptionlist',
+						flex : 1  
 					},
 					
 					

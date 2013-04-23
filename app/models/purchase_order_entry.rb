@@ -82,7 +82,7 @@ class PurchaseOrderEntry < ActiveRecord::Base
     end
   end
      
-  def delete 
+  def delete_object 
     if self.is_confirmed?   
       ActiveRecord::Base.transaction do
         self.post_confirm_delete

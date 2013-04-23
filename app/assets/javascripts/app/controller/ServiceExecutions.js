@@ -1,63 +1,55 @@
-Ext.define('AM.controller.SalesOrderEntries', {
+Ext.define('AM.controller.ServiceExecutions', {
   extend: 'Ext.app.Controller',
 
-  stores: ['SalesOrderEntries', 'SalesOrders'],
-  models: ['SalesOrderEntry'],
+  stores: ['ServiceExecutions', 'SalesOrderEntries'],
+  models: ['ServiceExecution'],
 
   views: [
-    'sales.salesorderentry.List',
-    'sales.salesorderentry.Form',
-		'sales.salesorderentry.ServiceForm',
+    'sales.serviceexecution.List',
+    'sales.serviceexecution.Form',
+		'sales.salesorderentry.List',
 		'sales.salesorder.List',
-		'sales.serviceexecution.List'
   ],
 
   refs: [
 		{
 			ref: 'list',
-			selector: 'salesorderentrylist'
+			selector: 'serviceexecutionlist'
 		},
 		{
 			ref : 'parentList',
-			selector : 'salesorderlist'
-		},
-		{
-			ref: 'serviceExecutionList',
-			selector: 'serviceexecutionlist'
-		},
-		
-		{
-			ref: 'materialConsumptionList',
-			selector: 'materialconsumptionlist'
-		},
+			selector : 'salesorderentrylist'
+		} 
 	],
 
   init: function() {
     this.control({
-      'salesorderentrylist': {
+      'serviceexecutionlist': {
         itemdblclick: this.editObject,
         selectionchange: this.selectionChange ,
 				afterrender : this.loadObjectList
       },
-      'salesorderentryform button[action=save], salesorderentryserviceform button[action=save]  ': {
+      'serviceexecutionform button[action=save]': {
         click: this.updateObject
       },
-      'salesorderentrylist button[action=addObject]': {
+      'serviceexecutionlist button[action=addObject]': {
         click: this.addObject
       },
-
-			'salesorderentrylist button[action=addServiceObject]': {
-        click: this.addServiceObject
-      },
-      'salesorderentrylist button[action=editObject]': {
+      'serviceexecutionlist button[action=editObject]': {
         click: this.editObject
       },
-      'salesorderentrylist button[action=deleteObject]': {
+      'serviceexecutionlist button[action=deleteObject]': {
         click: this.deleteObject
       },
 
-			// monitor parent(sales_order) update
 			'salesorderlist' : {
+				'deleted' : this.cleanList,
+				'selectionchange' : this.cleanList
+			},
+			
+			
+			// monitor parent(salesorderentry) update
+			'salesorderentrylist' : {
 				'updated' : this.reloadStore,
 				'confirmed' : this.reloadStore,
 				'deleted' : this.cleanList
@@ -72,11 +64,11 @@ Ext.define('AM.controller.SalesOrderEntries', {
 
 	reloadStore : function(record){
 		var list = this.getList();
-		var store = this.getSalesOrderEntriesStore();
+		var store = this.getServiceExecutionsStore();
 		
 		store.load({
 			params : {
-				sales_order_id : record.get('id')
+				sales_order_entry_id : record.get('id')
 			}
 		});
 		
@@ -85,11 +77,12 @@ Ext.define('AM.controller.SalesOrderEntries', {
 	
 	cleanList : function(){
 		var list = this.getList();
-		var store = this.getSalesOrderEntriesStore();
+		var store = this.getServiceExecutionsStore();
 		
 		list.setTitle('');
 		// store.removeAll(); 
 		store.loadRecords([], {addRecords: false});
+		this.getList().disableRecordButtons();
 	},
  
 
@@ -101,22 +94,7 @@ Ext.define('AM.controller.SalesOrderEntries', {
 			return; 
 		}
 		 
-    var view = Ext.widget('salesorderentryform', {
-			parentRecord : record 
-		});
-		view.setParentData( record );
-    view.show(); 
-  },
-
-	addServiceObject: function() {
-		
-		// I want to get the currently selected item 
-		var record = this.getParentList().getSelectedObject();
-		if(!record){
-			return; 
-		}
-		 
-    var view = Ext.widget('salesorderentryserviceform', {
+    var view = Ext.widget('serviceexecutionform', {
 			parentRecord : record 
 		});
 		view.setParentData( record );
@@ -130,14 +108,8 @@ Ext.define('AM.controller.SalesOrderEntries', {
 		if(!record || !parentRecord){
 			return; 
 		}
-		
-		
-		var widgetName = 'salesorderentryform'
-		if(record.get("entry_case") === 2 ){
-			widgetName = 'salesorderentryserviceform'; 
-		}
 
-    var view = Ext.widget( widgetName , {
+    var view = Ext.widget('serviceexecutionform', {
 			parentRecord : parentRecord
 		});
 
@@ -145,7 +117,7 @@ Ext.define('AM.controller.SalesOrderEntries', {
 		view.setParentData( parentRecord );
 		// console.log("selected record id: " + record.get('id'));
 		// console.log("The selected poe id: " + record.get('purchase_order_entry_id'));
-		view.setComboBoxData(record); 
+		// view.setComboBoxData(record); 
   },
 
   updateObject: function(button) {
@@ -153,7 +125,8 @@ Ext.define('AM.controller.SalesOrderEntries', {
     var form = win.down('form');
 
 		var parentRecord = this.getParentList().getSelectedObject();
-    var store = this.getSalesOrderEntriesStore();
+	
+    var store = this.getServiceExecutionsStore();
     var record = form.getRecord();
     var values = form.getValues();
 
@@ -161,10 +134,14 @@ Ext.define('AM.controller.SalesOrderEntries', {
 		if( record ){
 			record.set( values );
 			 
+			form.query('checkbox').forEach(function(checkbox){
+				record.set( checkbox['name']  ,checkbox['checked'] ) ;
+			});
+			
 			form.setLoading(true);
 			record.save({
 				params : {
-					sales_order_id : parentRecord.get('id')
+					sales_order_entry_id : parentRecord.get('id')
 				},
 				success : function(record){
 					form.setLoading(false);
@@ -172,7 +149,7 @@ Ext.define('AM.controller.SalesOrderEntries', {
 					// form.fireEvent('item_quantity_changed');
 					store.load({
 						params: {
-							sales_order_id : parentRecord.get('id')
+							sales_order_entry_id : parentRecord.get('id')
 						}
 					});
 					
@@ -192,7 +169,16 @@ Ext.define('AM.controller.SalesOrderEntries', {
 		}else{
 			//  no record at all  => gonna create the new one 
 			var me  = this; 
-			var newObject = new AM.model.SalesOrderEntry( values ) ;
+		
+			var newObject = new AM.model.ServiceExecution( values ) ;
+			
+		 
+			
+			form.query('checkbox').forEach(function(record){
+				newObject.set( record['name']  ,record['checked'] ) ;
+			});
+			
+			// populate the checkbox value to the object 
 			
 			// learnt from here
 			// http://www.sencha.com/forum/showthread.php?137580-ExtJS-4-Sync-and-success-failure-processing
@@ -200,13 +186,13 @@ Ext.define('AM.controller.SalesOrderEntries', {
 			form.setLoading(true);
 			newObject.save({
 				params : {
-					sales_order_id : parentRecord.get('id')
+					sales_order_entry_id : parentRecord.get('id')
 				},
 				success: function(record){
 					//  since the grid is backed by store, if store changes, it will be updated
 					store.load({
 						params: {
-							sales_order_id : parentRecord.get('id')
+							sales_order_entry_id : parentRecord.get('id')
 						}
 					});
 					// form.fireEvent('item_quantity_changed');
@@ -229,8 +215,14 @@ Ext.define('AM.controller.SalesOrderEntries', {
 	deleteObject: function() {
     var record = this.getList().getSelectedObject();
 		if(!record){return;}
-		var parent_id = record.get('sales_order_id');
+		var parent_id = record.get('sales_order_entry_id');
 		var list  = this.getList();
+		
+		
+		
+		// list.fireEvent("deleted");
+		// return; 
+		
 		list.setLoading(true); 
 		
     if (record) {
@@ -243,9 +235,10 @@ Ext.define('AM.controller.SalesOrderEntries', {
 					// this.getPurchaseOrdersStore.load();
 					list.getStore().load({
 						params : {
-							sales_order_id : parent_id
+							sales_order_entry_id : parent_id
 						}
 					});
+					list.fireEvent("deleted");
 				},
 				failure : function(record,op ){
 					list.setLoading(false);
@@ -268,79 +261,15 @@ Ext.define('AM.controller.SalesOrderEntries', {
 
   },
 
-	enableServiceExecutionGrid: function( record ){
-		var serviceExecutionGrid = this.getServiceExecutionList();
-		// serviceComponentGrid.setTitle("Purchase Order: " + record.get('code'));
-		serviceExecutionGrid.setObjectTitle( record ) ;
-		serviceExecutionGrid.getStore().load({
-			params : {
-				sales_order_entry_id : record.get('id')
-			},
-			callback : function(records, options, success){
-				
-				var totalObject  = records.length;
-				if( totalObject ===  0 ){
-					serviceExecutionGrid.enableRecordButtons(  ); 
-				}else{
-					serviceExecutionGrid.enableRecordButtons(); 
-				}
-			}
-		});
-	},
-	
-	enableMaterialConsumptionGrid: function( record ){
-		var materialConsumptionGrid = this.getMaterialConsumptionList();
-		// serviceComponentGrid.setTitle("Purchase Order: " + record.get('code'));
-		materialConsumptionGrid.setObjectTitle( record ) ;
-		materialConsumptionGrid.getStore().load({
-			params : {
-				sales_order_entry_id : record.get('id')
-			},
-			callback : function(records, options, success){
-				
-				var totalObject  = records.length;
-				if( totalObject ===  0 ){
-					materialConsumptionGrid.enableRecordButtons(  ); 
-				}else{
-					materialConsumptionGrid.enableRecordButtons(); 
-				}
-			}
-		});
-	},
-	
-	disableServiceExecutionGrid: function(){
-		var list  = this.getServiceExecutionList();
-		list.setTitle('');
-		list.getStore().loadRecords([], {addRecords: false});
-		this.getList().disableRecordButtons();
-	},
-	
-	disableMaterialConsumptionGrid: function(){
-		var list  = this.getMaterialConsumptionList();
-		list.setTitle('');
-		list.getStore().loadRecords([], {addRecords: false});
-		this.getList().disableRecordButtons();
-	},
-
   selectionChange: function(selectionModel, selections) {
     var grid = this.getList();
 
 		var record = this.getList().getSelectedObject();
+		
 		if(!record){
 			return; 
 		}
-		
-		// form.fireEvent('salesorderentry_selection_change', record);
-		
-		if( record.get("entry_case") ===  2) { // 2 means service sales_order_entry
-			this.enableServiceExecutionGrid( record );
-			this.enableMaterialConsumptionGrid( record );
-		}else{
-			this.disableServiceExecutionGrid();
-			this.disableMaterialConsumptionGrid(); 
-		}
-		
-		
+	 
 
     if (selections.length > 0) {
       grid.enableRecordButtons();

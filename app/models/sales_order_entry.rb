@@ -302,6 +302,15 @@ class SalesOrderEntry < ActiveRecord::Base
   
   
   
+  def active_service_executions
+    self.service_executions.where(:is_deleted => false).order("id DESC")
+  end
+  
+  def active_material_consumptions
+    self.material_consumptions.where(:is_deleted => false).order("id DESC")
+  end
+  
+  
      
        
 end

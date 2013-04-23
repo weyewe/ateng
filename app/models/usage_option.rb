@@ -90,4 +90,8 @@ class UsageOption < ActiveRecord::Base
       self.destroy 
     end
   end
+  
+  def detail
+    "#{self.item.name} x #{self.quantity}"
+  end
 end

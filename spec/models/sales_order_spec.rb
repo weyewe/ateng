@@ -138,7 +138,7 @@ describe SalesOrder do
         :employee_id => @employee.id  
       })
       so_entry.should be_valid
-      so_entry.delete
+      so_entry.delete_object
       
       so_entry = SalesOrderEntry.create_object(  @so, {
         :entry_id =>   @item1.id ,
@@ -148,7 +148,7 @@ describe SalesOrder do
         :employee_id => @employee.id
       })
       so_entry.should be_valid
-      so_entry.delete
+      so_entry.delete_object
       
       so_entry = SalesOrderEntry.create_object(  @so, {
         :entry_id =>   @item1.id ,
@@ -158,7 +158,7 @@ describe SalesOrder do
         :employee_id => @employee.id
       })
       so_entry.should_not be_valid
-      so_entry.delete
+      so_entry.delete_object
       
       so_entry = SalesOrderEntry.create_object(  @so, {
         :entry_id =>   @item1.id ,
@@ -168,7 +168,7 @@ describe SalesOrder do
         :employee_id => @employee.id
       })
       so_entry.should_not be_valid
-      so_entry.delete
+      so_entry.delete_object
     end
     
     it 'should ensure unique entry' do
@@ -201,7 +201,7 @@ describe SalesOrder do
         :employee_id => @employee.id
       })
       so_entry.should_not be_valid
-      so_entry.delete 
+      so_entry.delete_object
       
       so_entry = SalesOrderEntry.create_object(  @so, {
         :entry_id => @item1.id ,
@@ -211,7 +211,7 @@ describe SalesOrder do
         :employee_id => @employee.id
       })
       so_entry.should_not be_valid
-      so_entry.delete 
+      so_entry.delete_object 
     end
     
     context "so_entry creation" do
