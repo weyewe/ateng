@@ -247,6 +247,14 @@ end
     :selling_price => @selling_price,
     :commission_amount => @commission_amount 
     })
+  
+  @quantity = 20
+  @average_cost = 20
+  @stock_migration1 = StockMigration.create_object({
+    :item_id => @item1.id, 
+    :quantity => @quantity , 
+    :average_cost => @average_cost
+  })
 end
 
 @item1 = Item.first 

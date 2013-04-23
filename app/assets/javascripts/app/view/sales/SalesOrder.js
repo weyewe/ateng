@@ -3,22 +3,86 @@ Ext.define('AM.view.sales.SalesOrder', {
     alias: 'widget.salesorderProcess',
 	 
 		layout : {
-			type : 'vbox',
+			type : 'hbox',
 			align : 'stretch'
 		},
 		
+		
 		items : [
-			// {
-			// 	type : 'panel',
-			// 	html : 'this is the sales order'
-			// }
 			{
-				xtype : 'salesorderlist' ,
-				flex : 1  
+				xtype: 'container',
+				flex: 1 , 
+				layout : {
+					type : 'vbox',
+					align : 'stretch'
+				},
+				items: [
+					{
+						xtype : 'salesorderlist' ,
+						flex : 1
+					},
+					{
+						xtype : 'salesorderentrylist',
+						flex : 1 
+					}
+				]
 			},
+			
 			{
-				xtype : 'salesorderentrylist',
-				flex : 1 
+				xtype: 'container',
+				flex : 1 , 
+				// title : "Penggunaan Bahan Baku",
+				padding: '0 0 0 10',
+				layout : {
+					type : 'vbox',
+					align : 'stretch'
+				},
+				items: [
+				
+				
+					{
+						xtype : 'panel',
+						flex : 1 ,
+						html : 'the service execution'
+					},
+					
+					{
+						xtype : 'panel',
+						flex : 1 ,
+						html : "The service material consumption"
+					},
+					
+					
+					// {
+					// 	xtype : 'panel' ,
+					// 	flex : 1,
+					// 	html : "Jenis Bahan"
+					// },
+					// {
+					// 	xtype : 'panel',
+					// 	flex : 1 ,
+					// 	html : "Pilihan Item"
+					// }
+				]
 			}
 		]
+		
+		
+		
+		// layout : {
+		// 	type : 'hbox',
+		// 	align : 'stretch'
+		// },
+		// 
+		// items : [
+		// 
+		// 	{
+		// 		xtype : 'salesorderlist' ,
+		// 		flex : 1  
+		// 	},
+		// 	{
+		// 		xtype : 'salesorderentrylist',
+		// 		flex : 1 
+		// 	}
+		// ]
 });
