@@ -90,19 +90,14 @@ class SalesOrderEntry < ActiveRecord::Base
   end
   
   def create_service_sub_documents
-    self.sellable.service_components.each do |service_component|
-      service_component.material_usages.each do |material_usage|
-        first_available_option = material_usage.first_available_option
-        
-        if first_available_option
-           material_consumption = MaterialConsumption.create_object({
-             :service_component_id => service_component.id ,
-             :usage_option_id => first_available_option.id,
-             :sales_order_entry_id => self.id  
-           })
-        end
-        
-      end
+    self.sellable.active_service_components.each do |service_component|
+      service_execution = ServiceExecution.create_object({
+        :sales_order_entry_id => self.id, 
+        :service_component_id => service_component.id,
+        :employee_id => nil
+      })
+      
+      
     end
   end
   
@@ -123,11 +118,11 @@ class SalesOrderEntry < ActiveRecord::Base
         :employee_id => self.employee_id 
       })
     elsif self.is_service?
-      self.service_executions.each do |service_execution|
-        Commission.create_or_update_object( service_execution, {
-          :employee_id => self.employee_id 
-        })
-      end
+      # self.service_executions.each do |service_execution|
+      #   Commission.create_or_update_object( service_execution, {
+      #     :employee_id => self.employee_id 
+      #   })
+      # end
     end
     
   end

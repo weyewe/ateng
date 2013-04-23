@@ -3,9 +3,10 @@ class MaterialConsumption < ActiveRecord::Base
   belongs_to :sales_order_entry 
   # belongs_to :material_usage 
   belongs_to :usage_option 
+  belongs_to :service_execution
   
   validate :entry_uniqueness 
-  validate :item_ready_availability 
+  # validate :item_ready_availability 
   # validate :usage_option_mathches_service_component
   
   
@@ -22,23 +23,25 @@ class MaterialConsumption < ActiveRecord::Base
   # end
   
   
-  def item_ready_availability
-    return nil if self.usage_option_id.nil? 
-    new_usage_option = self.usage_option 
-    new_item = new_usage_option.item 
-    
-    if new_item.ready <  new_usage_option.quantity 
-      errors.add(:usage_option_id, "Kuantitas bahan baku #{new_item.name} tidak memadai")
-    end
-  end
+  # def item_ready_availability
+  #   return nil if self.usage_option_id.nil? 
+  #   new_usage_option = self.usage_option 
+  #   new_item = new_usage_option.item 
+  #   
+  #   if new_item.ready <  new_usage_option.quantity 
+  #     errors.add(:usage_option_id, "Kuantitas bahan baku #{new_item.name} tidak memadai")
+  #   end
+  # end
   
   def entry_uniqueness
     # from a given material usage, there can only be one material consumption 
   end
   
+  
+  # on service_execution => auto create the material_consumption.. assign the first available_option (usage_option)
   def self.create_object( params ) 
     new_object = self.new 
-    new_object.service_component_id = params[:service_component_id]
+    new_object.service_execution_id = params[:service_execution_id]
     new_object.usage_option_id = params[:usage_option_id]
     new_object.sales_order_entry_id = params[:sales_order_entry_id]
     new_object.save 
@@ -70,8 +73,18 @@ class MaterialConsumption < ActiveRecord::Base
   end
   
   def delete_object
-    StockMutation.delete_object( self ) 
-    self.destroy 
+    return nil if self.is_deleted? 
+    
+    
+    
+    if self.is_confirmed? 
+      self.is_deleted = true
+      self.save
+      StockMutation.delete_object( self )
+    else
+      self.destroy 
+    end
+    
   end
   
   
