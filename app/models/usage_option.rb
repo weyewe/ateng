@@ -91,7 +91,7 @@ class UsageOption < ActiveRecord::Base
     end
   end
   
-  def detail
+  def details
     "#{self.item.name} x #{self.quantity}"
   end
 end

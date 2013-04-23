@@ -163,6 +163,46 @@ Ext.define('AM.view.sales.serviceexecution.Form', {
 
 	setParentData: function( record ){
 		this.down('form').getForm().findField('sellable_name').setValue(record.get('sellable_name')); 
+	},
+	
+	
+	setSelectedServiceComponent: function( service_component_id ){
+		var comboBox = this.down('form').getForm().findField('service_component_id'); 
+		var me = this; 
+		var store = comboBox.store; 
+		store.load({
+			params: {
+				selected_id : service_component_id 
+			},
+			callback : function(records, options, success){
+				me.setLoading(false);
+				comboBox.setValue( service_component_id );
+			}
+		});
+	},
+	
+	setSelectedEmployee: function( employee_id ){
+		var comboBox = this.down('form').getForm().findField('employee_id'); 
+		var me = this; 
+		var store = comboBox.store; 
+		store.load({
+			params: {
+				selected_id : employee_id 
+			},
+			callback : function(records, options, success){
+				me.setLoading(false);
+				comboBox.setValue( employee_id );
+			}
+		});
+	},
+	setComboBoxData : function( record){
+
+		var me = this; 
+		me.setLoading(true);
+		
+		me.setSelectedServiceComponent( record.get("service_component_id")  ) ;
+		me.setSelectedEmployee( record.get("employee_id")  ) ;
+
 	}
 });
 

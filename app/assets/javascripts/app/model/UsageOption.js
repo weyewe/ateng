@@ -10,7 +10,8 @@ Ext.define('AM.model.UsageOption', {
 			
 			{ name: 'item_id', type: 'int' },
 			{ name: 'item_name', type: 'string' },
-			{ name: 'quantity', type: 'int' }
+			{ name: 'quantity', type: 'int' },
+			{ name: 'details', type: 'string' }
   	],
 
 	 

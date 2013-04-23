@@ -27,6 +27,7 @@ Ateng::Application.routes.draw do
     
     resources :material_usages 
     resources :usage_options
+    match 'search_usage_option' => 'usage_options#search', :as => :search_usage_option, :method => :get
     
     resources :suppliers 
     match 'search_supplier' => 'suppliers#search', :as => :search_supplier, :method => :get

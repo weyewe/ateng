@@ -6,6 +6,21 @@ class MaterialConsumption < ActiveRecord::Base
   
   validate :entry_uniqueness 
   validate :item_ready_availability 
+  # validate :usage_option_mathches_service_component
+  
+  
+  # def usage_option_matches_service_component
+  #   if not self.service_component.nil? and not 
+  #     
+  #     material_usage_id_list = self.service_component.material_usages.collect {|x| x.id }
+  #     available_usage_option_id_list = UsageOption.where()
+  #     # 1. get all available_usage_options for the given service_component
+  #     
+  #     # 2. is this selected usage option are in the potential option for the given service component 
+  #     
+  #   end
+  # end
+  
   
   def item_ready_availability
     return nil if self.usage_option_id.nil? 

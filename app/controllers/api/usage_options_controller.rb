@@ -75,23 +75,26 @@ class Api::UsageOptionsController < Api::BaseApiController
       selected_id = nil
     end
     
-    customer_id = params[:customer_id]
+    selected_service_id = params[:service_id]
+    valid_service_component_id_list = ServiceComponent.
+                        where(:service_id => selected_service_id, :is_deleted => false ).
+                        map{|x| x.id}
     
     query = "%#{search_params}%"
     # on PostGre SQL, it is ignoring lower case or upper case 
     
     if  selected_id.nil?
       @objects = UsageOption.joins(  :material_usage , :item).where{ (item.name =~ query )   & 
-                                (is_deleted.eq false )  & 
-                                (material_usage.customer_id.eq customer_id)
+                                (material_usage.service_id.eq selected_service_id) & 
+                                (material_usage.service_component_id.in valid_service_component_id_list ) 
                               }.
                         page(params[:page]).
                         per(params[:limit]).
                         order("id DESC")
     else
-      @objects = UsageOption.joins( :material_usage).where{ (id.eq selected_id)  & 
-                                (is_deleted.eq false ) & 
-                                (material_usage.customer_id.eq customer_id)
+      @objects = UsageOption.joins( :material_usage, :item ).where{ (id.eq selected_id)  & 
+                                (material_usage.service_id.eq selected_service_id) & 
+                                (material_usage.service_component_id.in valid_service_component_id_list )
                               }.
                         page(params[:page]).
                         per(params[:limit]).

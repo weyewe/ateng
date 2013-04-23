@@ -40,6 +40,9 @@ Ext.define('AM.view.sales.materialconsumption.Form', {
 			proxy  	: {
 				type : 'ajax',
 				url : 'api/search_service_component',
+				extraParams: {
+					service_id : this.parentRecord.get('entry_id') 
+		    },
 				reader : {
 					type : 'json',
 					root : 'records', 
@@ -52,8 +55,8 @@ Ext.define('AM.view.sales.materialconsumption.Form', {
 			storeId : 'usage_option_search',
 			fields	: [
 				{
-					name : 'usage_option_name',
-					mapping  :'name'
+					name : 'usage_option_details',
+					mapping  :'details'
 				},
 				{
 					name : 'usage_option_id',
@@ -130,16 +133,16 @@ Ext.define('AM.view.sales.materialconsumption.Form', {
 							xtype: 'combo',
 							queryMode: 'remote',
 							forceSelection: true, 
-							displayField : 'usage_option_detail',
+							displayField : 'usage_option_details',
 							valueField : 'usage_option_id',
 							pageSize : 5,
 							minChars : 1, 
 							triggerAction: 'all',
-							store : serviceComponentRemoteJsonStore, 
+							store : usageOptionRemoteJsonStore, 
 							listConfig : {
 								getInnerTpl: function(){
-									return  '<div data-qtip="{usage_option_detail}">' + 
-														'<div class="combo-name">{usage_option_detail}</div>' + 
+									return  '<div data-qtip="{usage_option_details}">' + 
+														'<div class="combo-name">{usage_option_details}</div>' + 
 													'</div>';
 								}
 							},
@@ -171,6 +174,47 @@ Ext.define('AM.view.sales.materialconsumption.Form', {
 
 	setParentData: function( record ){
 		this.down('form').getForm().findField('sellable_name').setValue(record.get('sellable_name')); 
+	},
+	
+	setSelectedUsageOption: function( usage_option_id ){
+		var comboBox = this.down('form').getForm().findField('usage_option_id'); 
+		var me = this; 
+		var store = comboBox.store; 
+		store.load({
+			params: {
+				selected_id : usage_option_id 
+			},
+			callback : function(records, options, success){
+				me.setLoading(false);
+				comboBox.setValue( usage_option_id );
+			}
+		});
+	},
+	
+	setSelectedServiceComponent: function( service_component_id ){
+		var comboBox = this.down('form').getForm().findField('service_component_id'); 
+		var me = this; 
+		var store = comboBox.store; 
+		store.load({
+			params: {
+				selected_id : service_component_id 
+			},
+			callback : function(records, options, success){
+				me.setLoading(false);
+				comboBox.setValue( service_component_id );
+			}
+		});
+	},
+	
+	
+	setComboBoxData : function( record){
+
+		var me = this; 
+		me.setLoading(true);
+		
+		me.setSelectedUsageOption( record.get("usage_option_id")  ) ;
+		me.setSelectedServiceComponent( record.get("service_component_id")  ) ;
+
 	}
 });
 

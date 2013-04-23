@@ -117,7 +117,7 @@ Ext.define('AM.controller.MaterialConsumptions', {
 		view.setParentData( parentRecord );
 		// console.log("selected record id: " + record.get('id'));
 		// console.log("The selected poe id: " + record.get('purchase_order_entry_id'));
-		// view.setComboBoxData(record); 
+		view.setComboBoxData(record); 
   },
 
   updateObject: function(button) {
