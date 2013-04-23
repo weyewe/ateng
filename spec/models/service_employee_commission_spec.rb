@@ -112,6 +112,8 @@ describe "ServiceSalesOrder" do
       :commission_amount => @commission_amount1
     })
     
+    
+    # creating the first material usage 
     @material_usage_name1 = "Material Usage Name"
     @material_usage1 = MaterialUsage.create_object({
       :name =>  @material_usage_name1 ,
@@ -135,6 +137,31 @@ describe "ServiceSalesOrder" do
       :quantity             => @mu1_usage_quantity2
     })
     
+    
+    # creating the second material usage 
+    
+    @material_usage_name2 = "Material Usage Name 2 "
+    @material_usage2 = MaterialUsage.create_object({
+      :name =>  @material_usage_name2 ,
+      :service_component_id => @service_component1.id ,
+      :service_id => @service.id
+    })
+    
+    @mu2_usage_quantity1 = 1 
+    @mu2_usage_option1 = UsageOption.create_object({
+      :service_component_id => @service_component1.id , 
+      :material_usage_id    => @material_usage2.id ,
+      :item_id              => @item1.id , 
+      :quantity             => @mu2_usage_quantity1
+    })
+    
+    @mu2_usage_quantity2 = 2
+    @mu2_usage_option2 = UsageOption.create_object({
+      :service_component_id => @service_component1.id , 
+      :material_usage_id    => @material_usage2.id ,
+      :item_id              => @item2.id , 
+      :quantity             => @mu2_usage_quantity2
+    })
   end
   
   context "creating service sales order" do 
@@ -156,13 +183,11 @@ describe "ServiceSalesOrder" do
       @so_entry1.should be_valid 
     end
     
-    it 'should be able to create service_execution' do
-      @service_execution = ServiceExecution.create_object({
-        :employee_id => @employee.id ,
-        :service_component_id => @service_component1.id ,
-        :sales_order_entry_id => @so_entry1.id
-      })
-      @service_execution.should be_valid 
+    it 'should auto  create service_execution' do
+      @so_entry1.active_service_executions.count.should_not == 0 
+      @so_entry1.active_service_executions.each do |service_execution|
+        service_execution.should be_valid 
+      end
     end
     
     it 'should not create double service execution (for the same service component)' do
@@ -171,41 +196,67 @@ describe "ServiceSalesOrder" do
         :service_component_id => @service_component1.id,
         :sales_order_entry_id => @so_entry1.id 
       })
-      @service_execution.should be_valid
+      @service_execution.should_not be_valid
+      
+      past_service_execution = ServiceExecution.where(
+        :service_component_id => @service_component1.id,
+        :sales_order_entry_id => @so_entry1.id
+      ).each {|x| x.delete_object }
+      
       
       @service_execution = ServiceExecution.create_object({
         :employee_id => @employee.id ,
-        :service_component_id => @service_component1.id ,
-        :sales_order_entry_id => @so_entry1.id
+        :service_component_id => @service_component1.id,
+        :sales_order_entry_id => @so_entry1.id 
+      })
+      @service_execution.should be_valid
+      
+      
+      @service_execution = ServiceExecution.create_object({
+        :employee_id => @employee.id ,
+        :service_component_id => @service_component1.id,
+        :sales_order_entry_id => @so_entry1.id 
       })
       @service_execution.should_not be_valid
     end
     
-    context "confirming the sales order" do
-      before(:each) do 
-        @service_execution = ServiceExecution.create_object({
-          :employee_id => @employee.id ,
-          :service_component_id => @service_component1.id,
-          :sales_order_entry_id => @so_entry1.id 
-        })
-        @service_execution.should be_valid
-        @so.confirm
-        @so_entry1.reload 
-        @service_execution.reload 
-      end
-      
-      it 'should confirm so_entry' do
-        @so_entry1.is_confirmed.should be_true 
-      end
-      
-      it 'should confirm service execution' do
-        @service_execution.is_confirmed.should be_true 
-      end
-      
-      it 'should produce commission @service_execution equal to the service_component' do
-        @service_execution.commission_amount.should == @service_component1.commission_amount 
-      end
-    end
     
+  
+    
+    context "deleting service execution" do 
+      before(:each) do
+        @first_service_execution = ServiceExecution.where(
+          :service_component_id => @service_component1.id,
+          :sales_order_entry_id => @so_entry1.id
+        ).first
+        
+        @material_consumption_list = @first_service_execution.active_material_consumptions
+        @material_consumption_list.length # to bypass the lazy loading 
+        @first_service_execution.delete_object 
+        
+      end
+      
+      
+      
+      it 'should destroy the un-confirmed service execution ' do 
+        @first_service_execution.persisted?.should be_false 
+      end
+    
+      it 'should delete the associated material_consumption' do
+        @material_consumption_list.each do |material_consumption| 
+          MaterialConsumption.where(:id => material_consumption.id).count.should ==0  
+        end
+      end
+      
+    end
+  
+    context "POST CONFIRM" do
+      
+      
+      #  i want to check => update employee_id will change the recipient in the commission
+      
+      # update service_component_id will refresh the material_consumption
+    end
+  
   end
 end

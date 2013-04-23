@@ -183,5 +183,9 @@ class ServiceExecution < ActiveRecord::Base
     return self 
   end
   
+  def active_material_consumptions
+    self.material_consumptions.where(:is_deleted => false ).order("id DESC")
+  end
+  
   
 end
