@@ -7,9 +7,49 @@ Ext.define('AM.view.sales.salesorderentry.List' ,{
 
 	initComponent: function() {
 		this.columns = [
-			{ header: 'Code',  dataIndex: 'code',  flex: 1 , sortable: false},
-			{ header: 'Item',  dataIndex: 'item_name',  flex: 1 , sortable: false},
-			{ header: 'Quantity',  dataIndex: 'quantity',  flex: 1 , sortable: false} 
+		
+	 
+		
+		
+			{
+				xtype : 'templatecolumn',
+				text : "Barang/Jasa",
+				flex : 1,
+				dataIndex : 'sellable_name',
+				tpl : '{sellable_name}'  
+				
+			}, 
+			
+			{
+				xtype : 'templatecolumn',
+				text : "Jumlah",
+				flex : 1,
+				dataIndex : 'quantity',
+				tpl : '{quantity}'  
+				
+			},
+			{
+				xtype : 'templatecolumn',
+				text : "Harga Satuan",
+				flex : 1,
+				dataIndex : 'name',
+				tpl : '{unit_price}' 
+				
+			},
+			{
+				xtype : 'templatecolumn',
+				text : "Diskon",
+				flex : 1,
+				dataIndex : 'discount',
+				tpl : '<b>{discount}</b>%' 
+			},
+			{
+				xtype : 'templatecolumn',
+				text : "Total",
+				flex : 1,
+				dataIndex : 'total_price',
+				tpl : '{total_price}' 
+			},
 		];
 
 		this.addObjectButton = new Ext.Button({

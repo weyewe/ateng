@@ -230,6 +230,13 @@ customer_1 = Customer.create_object( {
   :name => "Dixzell"
 } )
  
+10.times.each do |x|
+
+  @employee  = Employee.create_object(  {
+    :name          =>  "#{@Karyawan} #{x}"  
+    })
+end
+
  
 10.times.each do |x|
   @selling_price = "100000"

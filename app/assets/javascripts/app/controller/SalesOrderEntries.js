@@ -7,6 +7,7 @@ Ext.define('AM.controller.SalesOrderEntries', {
   views: [
     'sales.salesorderentry.List',
     'sales.salesorderentry.Form',
+		'sales.salesorderentry.ServiceForm',
 		'sales.salesorder.List'
   ],
 
@@ -28,11 +29,15 @@ Ext.define('AM.controller.SalesOrderEntries', {
         selectionchange: this.selectionChange ,
 				afterrender : this.loadObjectList
       },
-      'salesorderentryform button[action=save]': {
+      'salesorderentryform button[action=save], salesorderentryserviceform button[action=save]  ': {
         click: this.updateObject
       },
       'salesorderentrylist button[action=addObject]': {
         click: this.addObject
+      },
+
+			'salesorderentrylist button[action=addServiceObject]': {
+        click: this.addServiceObject
       },
       'salesorderentrylist button[action=editObject]': {
         click: this.editObject
@@ -93,6 +98,21 @@ Ext.define('AM.controller.SalesOrderEntries', {
     view.show(); 
   },
 
+	addServiceObject: function() {
+		
+		// I want to get the currently selected item 
+		var record = this.getParentList().getSelectedObject();
+		if(!record){
+			return; 
+		}
+		 
+    var view = Ext.widget('salesorderentryserviceform', {
+			parentRecord : record 
+		});
+		view.setParentData( record );
+    view.show(); 
+  },
+
   editObject: function() {
 		var parentRecord = this.getParentList().getSelectedObject();
 		
@@ -100,8 +120,14 @@ Ext.define('AM.controller.SalesOrderEntries', {
 		if(!record || !parentRecord){
 			return; 
 		}
+		
+		
+		var widgetName = 'salesorderentryform'
+		if(record.get("entry_case") === 2 ){
+			widgetName = 'salesorderentryserviceform'; 
+		}
 
-    var view = Ext.widget('salesorderentryform', {
+    var view = Ext.widget( widgetName , {
 			parentRecord : parentRecord
 		});
 

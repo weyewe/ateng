@@ -68,7 +68,22 @@ Ext.define('AM.controller.SalesOrders', {
 		    },
 		    jsonData: {},
 		    success: function(result, request ) {
-						me.getViewport().setLoading( false );
+			// console.log("success in confirming sales order");
+			// console.log(result);
+					var decodedResult = Ext.decode( result['responseText'] ) ;
+					
+					// console.log(decodedResult);
+					
+					me.getViewport().setLoading( false );
+					
+					if( decodedResult['success'] === false ){
+						Ext.MessageBox.show({
+						           title: 'DELETE FAIL',
+						           msg: decodedResult["message"]['errors']['generic_errors'],
+						           buttons: Ext.MessageBox.OK, 
+						           icon: Ext.MessageBox.ERROR
+						       });
+					}else{
 						list.getStore().load({
 							callback : function(records, options, success){
 								// this => refers to a store 
@@ -77,10 +92,17 @@ Ext.define('AM.controller.SalesOrders', {
 								list.fireEvent('confirmed', record);
 							}
 						});
+					}
+					
+					
+				
+						
+						
 						
 		    },
 		    failure: function(result, request ) {
 						me.getViewport().setLoading( false ) ;
+						console.log("failure in confirming sales order");
 		    }
 		});
 	},

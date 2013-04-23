@@ -70,10 +70,14 @@ class Api::SalesOrdersController < Api::BaseApiController
     # add some defensive programming.. current user has role admin, and current_user is indeed belongs to the company 
     @object.confirm   
     
-    if @object.is_confirmed? 
+    if @object.errors.size == 0 and @object.is_confirmed? 
       render :json => { :success => true, :total => SalesOrder.active_objects.count }  
     else
-      render :json => { :success => false, :total => SalesOrder.active_objects.count }  
+      render :json => { :success => false, :total => SalesOrder.active_objects.count, 
+                        :message => {
+                          :errors => extjs_error_format( @object.errors )  
+                        }
+                      }  
     end
   end
 end

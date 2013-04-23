@@ -8,7 +8,7 @@ class Api::SalesOrderEntriesController < Api::BaseApiController
 
   def create
     @parent = SalesOrder.find_by_id params[:sales_order_id]
-    @object = SalesOrderEntry.create_by_employee(current_user, @parent,  params[:sales_order_entry] )  
+    @object = SalesOrderEntry.create_object(  @parent,  params[:sales_order_entry] )  
     
     if @object.errors.size == 0 
       render :json => { :success => true, 
@@ -30,7 +30,7 @@ class Api::SalesOrderEntriesController < Api::BaseApiController
     
     @object = SalesOrderEntry.find_by_id params[:id] 
     @parent = @object.sales_order 
-    @object.update_by_employee(current_user,  params[:sales_order_entry])
+    @object.update_object( params[:sales_order_entry])
      
     if @object.errors.size == 0 
       render :json => { :success => true,   
@@ -51,7 +51,7 @@ class Api::SalesOrderEntriesController < Api::BaseApiController
   def destroy
     @object = SalesOrderEntry.find(params[:id])
     @parent = @object.sales_order 
-    @object.delete(current_user)
+    @object.delete_object
 
     if ( @object.persisted? and @object.is_deleted ) or ( not @object.persisted? )
       render :json => { :success => true, :total => @parent.active_sales_order_entries.count }  

@@ -29,7 +29,7 @@ class SalesOrder < ActiveRecord::Base
     item_quantity_hash.each do |key, value |
       item = Item.find_by_id(key) 
       if item.ready <  value 
-        errors.add(:generic_error, "Kuantitas item #{item.name} tidak cukup (ready = #{item.ready})")
+        errors.add(:generic_errors, "Kuantitas item #{item.name} tidak cukup (ready = #{item.ready})")
         return 
       end
     end

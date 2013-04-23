@@ -2,6 +2,7 @@ class SalesOrderEntry < ActiveRecord::Base
   belongs_to :sales_order 
   has_many :service_executions 
   has_many :material_consumptions 
+  belongs_to :employee 
   
   
   has_many :sales_return_entries # only for product 
@@ -61,7 +62,7 @@ class SalesOrderEntry < ActiveRecord::Base
   end
   
   def employee_id_presence_on_item_sales
-    if self.entry_case == SALES_ORDER_ENTRY_CASE[:item] and self.employee_id.nil? 
+    if self.entry_case == SALES_ORDER_ENTRY_CASE[:item] and self.employee.nil? 
       errors.add(:employee_id , "Harus memilih karyawan penjual" ) 
     end
   end
@@ -134,7 +135,7 @@ class SalesOrderEntry < ActiveRecord::Base
   
   def assign_total_price
     self.unit_price = self.sales_object.selling_price
-    self.total_price = ( self.unit_price * self.quantity )*( 1.0 - self.discount )
+    self.total_price = ( self.unit_price * self.quantity )*( 1.0 - self.discount/100.0 )
     self.save 
   end
   

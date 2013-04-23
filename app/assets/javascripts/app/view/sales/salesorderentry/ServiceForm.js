@@ -1,6 +1,6 @@
-Ext.define('AM.view.sales.salesorderentry.Form', {
+Ext.define('AM.view.sales.salesorderentry.ServiceForm', {
   extend: 'Ext.window.Window',
-  alias : 'widget.salesorderentryform',
+  alias : 'widget.salesorderentryserviceform',
 
   title : 'Add / Edit Entry',
   layout: 'fit',
@@ -21,14 +21,14 @@ Ext.define('AM.view.sales.salesorderentry.Form', {
 		if( !this.parentRecord){ return; }
 	
 		var remoteJsonStore = Ext.create(Ext.data.JsonStore, {
-			storeId : 'item_search',
+			storeId : 'service_search',
 			fields	: [
 				{
-					name : 'item_id',
+					name : 'service_id',
 					mapping  :'id'
 				},
 				{
-					name : 'item_name',
+					name : 'service_name',
 					mapping : 'name'
 				},
 				{
@@ -38,7 +38,7 @@ Ext.define('AM.view.sales.salesorderentry.Form', {
 			],
 			proxy  	: {
 				type : 'ajax',
-				url : 'api/search_item',
+				url : 'api/search_service',
 				reader : {
 					type : 'json',
 					root : 'records', 
@@ -46,29 +46,7 @@ Ext.define('AM.view.sales.salesorderentry.Form', {
 				}
 			}
 		});
-		
-		var employeeRemoteJsonStore = Ext.create(Ext.data.JsonStore, {
-			storeId : 'employee_search',
-			fields	: [
-				{
-					name : 'employee_id',
-					mapping  :'id'
-				},
-				{
-					name : 'employee_name',
-					mapping : 'name'
-				}
-			],
-			proxy  	: {
-				type : 'ajax',
-				url : 'api/search_employee',
-				reader : {
-					type : 'json',
-					root : 'records', 
-					totalProperty  : 'total'
-				}
-			}
-		});
+	 
 		
     this.items = [{
       xtype: 'form',
@@ -88,20 +66,20 @@ Ext.define('AM.view.sales.salesorderentry.Form', {
 					value: '10'
 				},
 				{
-					fieldLabel: 'Item',
+					fieldLabel: 'Service',
 					xtype: 'combo',
 					queryMode: 'remote',
 					forceSelection: true, 
-					displayField : 'item_name',
-					valueField : 'item_id',
+					displayField : 'service_name',
+					valueField : 'service_id',
 					pageSize : 5,
 					minChars : 1, 
 					triggerAction: 'all',
 					store : remoteJsonStore, 
 					listConfig : {
 						getInnerTpl: function(){
-							return  '<div data-qtip="{item_name}">' + 
-												'<div class="combo-name">{item_name}</div>' + 
+							return  '<div data-qtip="{service_name}">' + 
+												'<div class="combo-name">{service_name}</div>' + 
 												'<div>Harga Jual: {selling_price}</div>' + 
 											'</div>';
 						}
@@ -109,9 +87,10 @@ Ext.define('AM.view.sales.salesorderentry.Form', {
 					name : 'entry_id'
 				},
 				{
-	        xtype: 'textfield',
+	        xtype: 'displayfield',
 	        fieldLabel: ' Quantity',
 					name : 'quantity',
+					value : 1 
 	      },
 				{
 	        xtype: 'textfield',
@@ -119,30 +98,10 @@ Ext.define('AM.view.sales.salesorderentry.Form', {
 					name : 'discount',
 	      },
 				{
-					fieldLabel: 'Penjual',
-					xtype: 'combo',
-					queryMode: 'remote',
-					forceSelection: true, 
-					displayField : 'employee_name',
-					valueField : 'employee_id',
-					pageSize : 5,
-					minChars : 1, 
-					triggerAction: 'all',
-					store : employeeRemoteJsonStore, 
-					listConfig : {
-						getInnerTpl: function(){
-							return  '<div data-qtip="{employee_name}">' + 
-												'<div class="combo-name">{employee_name}</div>' + 
-											'</div>';
-						}
-					},
-					name : 'employee_id'
-				}, 
-				{
 	        xtype: 'hidden',
 	        name : 'entry_case',
 	        fieldLabel: 'Entry Case',
-					value: 1 
+					value: 2
 	      }
 			]
     }];
@@ -165,44 +124,28 @@ Ext.define('AM.view.sales.salesorderentry.Form', {
 	},
 	
 	
-	setSelectedItem: function( item_id ){
+	setSelectedService: function( service_id ){
 		var comboBox = this.down('form').getForm().findField('entry_id'); 
 		var me = this; 
 		var store = comboBox.store; 
 		store.load({
 			params: {
-				selected_id : item_id 
+				selected_id : service_id 
 			},
 			callback : function(records, options, success){
 				me.setLoading(false);
-				comboBox.setValue( item_id );
+				comboBox.setValue( service_id );
 			}
 		});
 	},
 	
-	setSelectedEmployee: function( employee_id ){
-		var comboBox = this.down('form').getForm().findField('employee_id'); 
-		var me = this; 
-		var store = comboBox.store; 
-		store.load({
-			params: {
-				selected_id : employee_id 
-			},
-			callback : function(records, options, success){
-				me.setLoading(false);
-				comboBox.setValue( employee_id );
-			}
-		});
-	},
 	
 	setComboBoxData : function( record){
 
 		var me = this; 
 		me.setLoading(true);
 		
-		me.setSelectedItem( record.get("entry_id")  ) ;
-		me.setSelectedEmployee( record.get("employee_id")  ) ;
-
+		me.setSelectedService( record.get("entry_id")  ) ;
 	}
 });
 
