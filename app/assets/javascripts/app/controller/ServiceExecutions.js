@@ -57,7 +57,8 @@ Ext.define('AM.controller.ServiceExecutions', {
 				// 'selectionchange' : this.cleanList, 
 				'updated' : this.reloadStore,
 				'confirmed' : this.reloadStore,
-				'deleted' : this.cleanList
+				'deleted' : this.cleanList,
+				'selectionchangetoitem' : this.cleanList
 			}
 		
     });

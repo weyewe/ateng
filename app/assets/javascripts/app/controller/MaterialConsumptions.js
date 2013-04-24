@@ -53,7 +53,8 @@ Ext.define('AM.controller.MaterialConsumptions', {
 			'salesorderentrylist' : {
 				'updated' : this.reloadStore,
 				'confirmed' : this.reloadStore,
-				'deleted' : this.cleanList
+				'deleted' : this.cleanList,
+				'selectionchangetoitem' : this.cleanList
 			},
 			
 			'serviceexecutionlist' : {
