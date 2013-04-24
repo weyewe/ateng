@@ -37,7 +37,8 @@ class ServiceExecution < ActiveRecord::Base
    
     service_execution_count = ServiceExecution.where(
       :service_component_id => self.service_component_id,
-      :sales_order_entry_id  => parent.id  
+      :sales_order_entry_id  => parent.id ,
+      :is_deleted => false 
     ).count 
     
     service_component = self.service_component
@@ -99,10 +100,7 @@ class ServiceExecution < ActiveRecord::Base
       new_object.create_material_consumptions
        
       if new_object.errors.size == 0 and new_object.sales_order_entry.is_confirmed?
-        new_object.is_confirmed = true 
-        new_object.save 
-        new_object.update_commission_amount
-       
+        new_object.confirm
       end
     end
     return new_object 
@@ -132,9 +130,8 @@ class ServiceExecution < ActiveRecord::Base
       self.commission.delete_object if not self.commission.nil? and self.employee_id.nil? 
       
       if not self.employee_id.nil? and ( is_employee_id_changed or is_service_component_id_changed )
-        Commission.create_or_update_object( self, {
-          :employee_id => self.employee_id
-        })
+        
+        self.create_commission if self.sales_order_entry.is_confirmed? 
         
         if is_service_component_id_changed
           # update material consumption 
@@ -153,10 +150,10 @@ class ServiceExecution < ActiveRecord::Base
     self.is_confirmed = true 
     self.save 
     self.update_commission_amount
-    self.create_commissionable
+    self.create_commission
   end
   
-  def create_commissionable
+  def create_commission
     
     if not self.employee_id.nil? 
       Commission.create_or_update_object( self, {
