@@ -22,7 +22,21 @@ Ext.define('AM.controller.SalesOrders', {
 		{
 			ref: 'viewport',
 			selector: 'vp'
-		}
+		},
+		
+		// {
+		// 	ref : 'dateRangeToggler',
+		// 	selector: 'salesorderlist button[action=dateRangeToggle]'
+		// },
+		// 
+		// {
+		// 	ref : 'startDatePicker',
+		// 	selector: 'salesorderlist button[action=startDateObject] datepicker'
+		// },
+		// {
+		// 	ref : 'endDatePicker',
+		// 	selector: 'salesorderlist button[action=endDateObject] datepicker'
+		// }
 	],
 
   init: function() {
@@ -48,11 +62,48 @@ Ext.define('AM.controller.SalesOrders', {
         click: this.confirmObject
       },
 
+			// 'salesorderlist button[action=dateRangeToggle]' : {
+			// 	toggle : this.toggleSearchDateRange
+			// },
+			// 'salesorderlist button[action=startDateObject] datepicker': {
+			//         select: this.selectedStartDate
+			//       },
+			// 
+			// 'salesorderlist button[action=endDateObject] datepicker': {
+			//         select: this.selectedEndDate
+			//       },
+
 
     });
   },
 
+	// toggleSearchDateRange : function(btn, pressed ) {
+	// 	console.log("the pressed: " + pressed);
+	// 	
+	// 	this.getList().endDateButton.setDisabled( false ) ;
+	// 	this.getList().startDateButton.setDisabled( false ) ;
+	// },
+	// 
+	// selectedStartDate : function(datepicker, date ){
+	// 	// Ext.Msg.alert('Date Selected', 'You selected ' + Ext.Date.format(date, 'M j, Y'));
+	// 	var selectedDate = Ext.Date.format(date, 'M j, Y');
+	// 	datepicker.up('button').setText( selectedDate );
+	// },
+	// 
+	// selectedEndDate : function(datepicker, date ){
+	// 	// Ext.Msg.alert('Date Selected', 'You selected ' + Ext.Date.format(date, 'M j, Y'));
+	// 	var selectedDate = Ext.Date.format(date, 'M j, Y');
+	// 	datepicker.up('button').setText( selectedDate );
+	// },
+
 	confirmObject: function(){
+		
+		// var startDate = this.getStartDatePicker().getValue();
+		// var selectedStartDate = Ext.Date.format(startDate, 'M j, Y');
+		// console.log("The start date: "+ selectedStartDate);
+		// return; 
+		// we want to test to extract date 
+		
 		var me  = this;
 		var record = this.getList().getSelectedObject();
 		var list = this.getList();

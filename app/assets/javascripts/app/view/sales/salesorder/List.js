@@ -35,9 +35,42 @@ Ext.define('AM.view.sales.salesorder.List' ,{
 			action: 'confirmObject',
 			disabled: true
 		});
+		
+		
+		// this.startDateMenu = Ext.create('Ext.menu.DatePicker', {});
+		// 
+		// this.startDateButton = new Ext.Button({
+		// 	text: 'Mulai: ',
+		// 	action: 'startDateObject',
+		// 	disabled: true,
+		// 	menu: this.startDateMenu
+		// });
+		// 
+		// this.endDateMenu = Ext.create('Ext.menu.DatePicker', {});
+		// 
+		// this.endDateButton = new Ext.Button({
+		// 	text: 'Selesai: ',
+		// 	action: 'endDateObject',
+		// 	disabled: true,
+		// 	menu: this.endDateMenu
+		// });
+		// 
+		// this.toggleSearchDateRangeButton = new Ext.Button({
+		// 	text: 'DateRange',
+		// 	action: 'dateRangeToggle',
+		// 	disabled: false,
+		// 	pressed : false,
+		// 	enableToggle: true 
+		// });
+		// 
+		 
+		
 
 
 
+		// this.tbar = [this.addObjectButton, this.editObjectButton, this.deleteObjectButton, this.confirmObjectButton, '-', 
+		// 						this.startDateButton , this.endDateButton, this.toggleSearchDateRangeButton];
+	
 		this.tbar = [this.addObjectButton, this.editObjectButton, this.deleteObjectButton, this.confirmObjectButton ];
 		this.bbar = Ext.create("Ext.PagingToolbar", {
 			store	: this.store, 

@@ -11,7 +11,7 @@ Ext.define('AM.view.sales.SalesOrder', {
 		items : [
 			{
 				xtype: 'container',
-				flex: 1 , 
+				flex: 3 , 
 				layout : {
 					type : 'vbox',
 					align : 'stretch'
@@ -30,7 +30,7 @@ Ext.define('AM.view.sales.SalesOrder', {
 			
 			{
 				xtype: 'container',
-				flex : 1 , 
+				flex : 2 , 
 				// title : "Penggunaan Bahan Baku",
 				padding: '0 0 0 10',
 				layout : {
