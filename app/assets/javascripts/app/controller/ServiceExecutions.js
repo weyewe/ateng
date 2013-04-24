@@ -19,7 +19,11 @@ Ext.define('AM.controller.ServiceExecutions', {
 		{
 			ref : 'parentList',
 			selector : 'salesorderentrylist'
-		} 
+		},
+		{
+			ref : 'materialConsumptionList',
+			selector : 'materialconsumptionlist'
+		}
 	],
 
   init: function() {
@@ -50,6 +54,7 @@ Ext.define('AM.controller.ServiceExecutions', {
 			
 			// monitor parent(salesorderentry) update
 			'salesorderentrylist' : {
+				// 'selectionchange' : this.cleanList, 
 				'updated' : this.reloadStore,
 				'confirmed' : this.reloadStore,
 				'deleted' : this.cleanList
@@ -117,7 +122,6 @@ Ext.define('AM.controller.ServiceExecutions', {
 		view.setParentData( parentRecord );
 		// console.log("selected record id: " + record.get('id'));
 		// console.log("The selected poe id: " + record.get('purchase_order_entry_id'));
-		// view.setComboBoxData(record); 
 		view.setComboBoxData(record); 
   },
 
@@ -187,6 +191,9 @@ Ext.define('AM.controller.ServiceExecutions', {
 			form.setLoading(true);
 			newObject.save({
 				params : {
+					sales_order_entry_id : parentRecord.get('id')
+				},
+				extraParams : {
 					sales_order_entry_id : parentRecord.get('id')
 				},
 				success: function(record){
@@ -270,7 +277,23 @@ Ext.define('AM.controller.ServiceExecutions', {
 		if(!record){
 			return; 
 		}
-	 
+		var materialConsumptionGrid = this.getMaterialConsumptionList();
+		// serviceComponentGrid.setTitle("Purchase Order: " + record.get('code'));
+		materialConsumptionGrid.setObjectTitle( record ) ;
+		materialConsumptionGrid.getStore().load({
+			params : {
+				service_execution_id : record.get('id')
+			},
+			callback : function(records, options, success){
+				
+				var totalObject  = records.length;
+				if( totalObject ===  0 ){
+					materialConsumptionGrid.enableRecordButtons(); 
+				}else{
+					materialConsumptionGrid.enableRecordButtons(); 
+				}
+			}
+		});
 
     if (selections.length > 0) {
       grid.enableRecordButtons();

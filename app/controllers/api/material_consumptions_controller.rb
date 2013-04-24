@@ -1,20 +1,20 @@
 class Api::MaterialConsumptionsController < Api::BaseApiController
   
   def index
-    @parent = SalesOrderEntry.find_by_id params[:sales_order_entry_id]
-    @objects = @parent.active_material_consumptions.
-                joins(:sales_order_entry, :usage_option=> [:item, :service_component ]).
-                page(params[:page]).per(params[:limit]).order("id DESC")
-    @total = @parent.active_material_consumptions.count
+    @parent = ServiceExecution.find_by_id params[:service_execution_id]
     
-    # render :json => { :material_consumptions => @objects , :total => @total , :success => true }
+    @objects = @parent.active_material_consumptions.
+                joins(:service_execution, :usage_option=> [:item, :service_component ]).
+                page(params[:page]).per(params[:limit]).order("id DESC")
+                
+    @total = @parent.active_material_consumptions.count    
   end
 
   def create
-   
-    @parent = SalesOrderEntry.find_by_id params[:sales_order_entry_id]
+    @parent = ServiceExecution.find_by_id params[:service_execution_id]
     
-    params[:material_consumption][:sales_order_entry_id] = params[:sales_order_entry_id]
+    params[:material_consumption][:service_execution_id] = params[:service_execution_id]
+    params[:material_consumption][:sales_order_entry_id] = @parent.sales_order_entry_id 
     @object = MaterialConsumption.create_object( params[:material_consumption] )  
     
     if @object.errors.size == 0 
@@ -35,9 +35,8 @@ class Api::MaterialConsumptionsController < Api::BaseApiController
 
   def update
     @object = MaterialConsumption.find_by_id params[:id] 
-    @parent = @object.sales_order_entry 
+    @parent = @object.service_execution 
     
-    params[:material_consumption][:sales_order_entry_id] = params[:sales_order_entry_id]
     @object.update_object(params[:material_consumption])
      
     if @object.errors.size == 0 
@@ -58,7 +57,7 @@ class Api::MaterialConsumptionsController < Api::BaseApiController
 
   def destroy
     @object = MaterialConsumption.find(params[:id])
-    @parent = @object.sales_order_entry 
+    @parent = @object.service_execution 
     @object.delete_object
 
     if  ( not @object.persisted? )

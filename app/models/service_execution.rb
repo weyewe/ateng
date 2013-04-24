@@ -73,7 +73,8 @@ class ServiceExecution < ActiveRecord::Base
       material_consumption = MaterialConsumption.create_object({
         :service_execution_id => self.id ,
         :usage_option_id => usage_option.id ,
-        :sales_order_entry_id => self.sales_order_entry.id 
+        :sales_order_entry_id => self.sales_order_entry.id,
+        :material_usage_id => material_usage.id 
       })
       
       if self.sales_order_entry.is_confirmed?

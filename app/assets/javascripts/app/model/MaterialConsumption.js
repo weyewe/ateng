@@ -2,6 +2,10 @@ Ext.define('AM.model.MaterialConsumption', {
   	extend: 'Ext.data.Model',
   	fields: [
     	{ name: 'id', type: 'int' },
+
+			{ name: 'service_execution_id', type: 'int' } ,
+
+
 			{ name: 'sales_order_entry_id', type: 'int' } ,
 			{ name: 'sellable_name', type: 'string' } ,
 			

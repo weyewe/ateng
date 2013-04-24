@@ -3,7 +3,7 @@ json.total @total
 json.material_consumptions @objects do |object|
 	json.id 				object.id 
  
-
+	json.service_execution_id 	object.service_execution_id
 	json.sales_order_entry_id 	object.sales_order_entry.id
 	json.sellable_name 					object.sales_order_entry.sellable.name 
 

@@ -73,8 +73,10 @@ class MaterialUsage < ActiveRecord::Base
   def first_available_option
     return nil if self.usage_options.length == 0 
     
+    mu_id = self.id 
     UsageOption.joins(:item).where{
-      (quantity.lte item.ready )
+      (quantity.lte item.ready ) & 
+      ( material_usage_id.eq  mu_id)
     }.order("id ASC").first 
   end
 end

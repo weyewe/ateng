@@ -7,6 +7,7 @@ class CreateMaterialConsumptions < ActiveRecord::Migration
       t.integer :service_component_id 
       t.integer :usage_option_id 
       
+      t.integer :material_usage_id 
       
       t.integer :service_execution_id 
       

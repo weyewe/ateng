@@ -3,7 +3,7 @@ class Api::ServiceExecutionsController < Api::BaseApiController
   def index
     @parent = SalesOrderEntry.find_by_id params[:sales_order_entry_id]
     @objects = @parent.active_service_executions.
-                joins(:sales_order_entry, :service_component, :employee).
+                joins(:sales_order_entry, :service_component ).
                 page(params[:page]).per(params[:limit]).order("id DESC")
     @total = @parent.active_service_executions.count
     

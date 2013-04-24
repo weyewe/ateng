@@ -9,6 +9,7 @@ Ext.define('AM.controller.MaterialConsumptions', {
     'sales.materialconsumption.Form',
 		'sales.salesorderentry.List',
 		'sales.salesorder.List',
+		'sales.serviceexecution.List',
   ],
 
   refs: [
@@ -53,6 +54,11 @@ Ext.define('AM.controller.MaterialConsumptions', {
 				'updated' : this.reloadStore,
 				'confirmed' : this.reloadStore,
 				'deleted' : this.cleanList
+			},
+			
+			'serviceexecutionlist' : {
+				'updated' : this.reloadStore, 
+				'deleted' : this.cleanList 
 			}
 		
     });

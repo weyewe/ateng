@@ -334,11 +334,7 @@ Ext.define('AM.controller.SalesOrderEntries', {
 		
 		if( record.get("entry_case") ===  2) { // 2 means service sales_order_entry
 			this.enableServiceExecutionGrid( record );
-			this.enableMaterialConsumptionGrid( record );
-		}else{
-			this.disableServiceExecutionGrid();
-			this.disableMaterialConsumptionGrid(); 
-		}
+		} 
 		
 		
 

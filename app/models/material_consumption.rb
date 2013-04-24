@@ -42,6 +42,7 @@ class MaterialConsumption < ActiveRecord::Base
   def self.create_object( params ) 
     new_object = self.new 
     new_object.service_execution_id = params[:service_execution_id]
+    new_object.material_usage_id = params[:material_usage_id]
     new_object.usage_option_id = params[:usage_option_id]
     new_object.sales_order_entry_id = params[:sales_order_entry_id]
     new_object.save 
@@ -56,6 +57,7 @@ class MaterialConsumption < ActiveRecord::Base
   def update_object(params)
     is_usage_option_id_changed = ( self.usage_option_id != params[:usage_option_id])? true : false 
     
+    self.material_usage_id = params[:material_usage_id]
     self.usage_option_id = params[:usage_option_id]
     
     if self.save 
