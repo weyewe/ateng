@@ -1,6 +1,28 @@
 class ServiceComponent < ActiveRecord::Base
+  
   include UniqueNonDeleted
-  validate :unique_non_deleted_name 
+  validate :unique_non_deleted_name  
+  
+  # overload the one in module
+  def has_duplicate_entry?
+    
+    current_object=  self  
+    self.class.find(:all, :conditions => ['lower(name) = :name and is_deleted = :is_deleted ' + 
+                   ' and service_id = :service_id', 
+                {:name => current_object.name.downcase, :is_deleted => false ,
+                  :service_id => current_object.service_id }]).count != 0  
+  end
+  
+  def duplicate_entries
+    current_object=  self  
+    return self.class.find(:all, :conditions => ['lower(name) = :name and is_deleted = :is_deleted  '+ 
+                   ' and service_id = :service_id', 
+                {:name => current_object.name.downcase, :is_deleted => false ,
+                  :service_id => current_object.service_id  }]) 
+  end
+
+  
+  
   validates_presence_of :name, :service_id 
   # attr_accessible :title, :body
   has_many :service_executions

@@ -80,6 +80,7 @@ Ext.define('AM.controller.Employees', {
 		var me = this; 
     var win = button.up('window');
     var form = win.down('form');
+		var list = this.getList();
 
     var store = this.getEmployeesStore();
     var record = form.getRecord();
@@ -87,6 +88,7 @@ Ext.define('AM.controller.Employees', {
 
 		
 		if( record ){
+			var recordId=  record.get("id");
 			record.set( values );
 			 
 			form.setLoading(true);
@@ -99,7 +101,33 @@ Ext.define('AM.controller.Employees', {
 					//     livesearch: ''
 					// };
 	 
-					store.load();
+					// store.load();
+					
+					// recommendation from this guy: http://vadimpopa.com/reload-a-single-record-and-refresh-its-extjs-grid-row/
+					// reload a single grid 
+					me.getEmployeeModel().load(  recordId , {
+					    scope: list,
+					    failure: function(record, operation) {
+					        //do something if the load failed
+					    },
+					    success: function(record, operation) {
+					        var store = list.getStore(),
+					            recToUpdate = store.getById( recordId );
+					
+					         recToUpdate.set(record.getData());
+					
+					     // Do commit if you need: if the data from
+					     // the server differs from last commit data
+					         recordToUpdate.commit();
+					
+					         list.getView().refreshNode(store.indexOfId( recordId ));
+					    },
+					    callback: function(record, operation) {
+					        //do something whether the load succeeded or failed
+					    }
+					});
+					
+					
 					win.close();
 				},
 				failure : function(record,op ){
@@ -124,7 +152,8 @@ Ext.define('AM.controller.Employees', {
 			newObject.save({
 				success: function(record){
 	
-					store.load();
+					// store.load();
+					store.add( record );
 					form.setLoading(false);
 					win.close();
 					

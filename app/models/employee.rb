@@ -4,7 +4,8 @@ class Employee < ActiveRecord::Base
                   :email, :bbm_pin, :address 
   
   validates_presence_of :name 
-  validate :unique_non_deleted_name 
+  validate :unique_non_deleted_name
+
  
  
   has_many :service_executions 

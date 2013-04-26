@@ -1,6 +1,10 @@
 class Customer < ActiveRecord::Base
   include UniqueNonDeleted
   validate :unique_non_deleted_name 
+  
+  
+  
+  
    
   validates_presence_of :name 
  

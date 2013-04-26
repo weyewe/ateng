@@ -3,6 +3,8 @@ class Item < ActiveRecord::Base
   validate :unique_non_deleted_name 
   validates_presence_of :name
   
+
+  
   has_many :stock_entries 
   has_many :purchase_order_entries
   has_many :purchase_receival_entries 

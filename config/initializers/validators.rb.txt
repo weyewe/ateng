@@ -1,0 +1,58 @@
+ActiveRecord::Base.class_eval do
+  def self.validates_unique_non_deleted(*attr_names)
+    # todo: validation code
+    puts "#{attr_names}" 
+    options =  attr_names.extract_options! 
+    puts "the options: #{options}"
+    puts "field_name : #{attr_names.first}"
+    
+    
+    validates_each(attr_names) do |record, attr_name, value|
+        # unless value.nil?
+        #   record.errors.add(attr_name, 'must be after current time') if value < Time.now
+        # end
+        puts "The record is : #{record}"
+        puts "The value is : #{value}"
+        
+      record = self
+
+      msg = 'Sudah ada dengan data sama'
+       # claim.status_changed?
+      if not record.send(attr_name).nil? 
+        if not record.persisted? and record.has_duplicate_entry?  
+          errors.add(:name ,  msg )  
+        elsif record.persisted? and 
+              record.name_changed?  and
+              record.has_duplicate_entry?   
+              # if duplicate entry is itself.. no error
+              # else.. some error
+
+            if record.duplicate_entries.count ==1  and 
+                record.duplicate_entries.first.id == record.id 
+            else
+              errors.add(:name , msg )  
+            end 
+        end
+      end
+    end
+  end
+
+  
+  def has_duplicate_entry?
+    current_object=  self  
+    self.class.find(:all, :conditions => [
+                'lower(name) = :name ' + 'and is_deleted = :is_deleted  ' + 
+                '', 
+                {:name => current_object.name.downcase, :is_deleted => false }]).count != 0  
+  end
+  
+  def duplicate_entries
+    current_object=  self  
+    return self.class.find(:all, :conditions => ['lower(name) = :name and is_deleted = :is_deleted  ', 
+                {:name => current_object.name.downcase, :is_deleted => false  }]) 
+  end
+  
+  
+
+
+end

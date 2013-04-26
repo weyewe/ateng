@@ -46,6 +46,13 @@ class Api::EmployeesController < Api::BaseApiController
       render :json => msg                         
     end
   end
+  
+  def show
+    @object  = Employee.find params[:id]
+    render :json => { :success => true,   
+                      :employee => @object,
+                      :total => Employee.active_objects.count  }
+  end
 
   def update
     @object = Employee.find(params[:id])

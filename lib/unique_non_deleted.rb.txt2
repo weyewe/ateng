@@ -1,0 +1,40 @@
+module UniqueNonDeleted
+  
+  
+  def unique_non_deleted_name( *attr_data ) 
+    puts "The options is: #{options} "    
+  
+    record = self
+     
+    msg = 'Sudah ada dengan data sama'
+     # claim.status_changed?
+    if not record.name.nil? 
+      if not record.persisted? and record.has_duplicate_entry?  
+        errors.add(:name ,  msg )  
+      elsif record.persisted? and 
+            record.name_changed?  and
+            record.has_duplicate_entry?   
+            # if duplicate entry is itself.. no error
+            # else.. some error
+            
+          if record.duplicate_entries.count ==1  and 
+              record.duplicate_entries.first.id == record.id 
+          else
+            errors.add(:name , msg )  
+          end 
+      end
+    end
+  end
+  
+  def has_duplicate_entry?
+    record=  self  
+    self.class.find(:all, :conditions => ['lower(name) = :name and is_deleted = :is_deleted  ', 
+                {:name => record.name.downcase, :is_deleted => false }]).count != 0  
+  end
+  
+  def duplicate_entries
+    record=  self  
+    return self.class.find(:all, :conditions => ['lower(name) = :name and is_deleted = :is_deleted  ', 
+                {:name => record.name.downcase, :is_deleted => false  }]) 
+  end
+end

@@ -2,6 +2,23 @@ class MaterialUsage < ActiveRecord::Base
   include UniqueNonDeleted
   validate :unique_non_deleted_name 
   
+  def has_duplicate_entry?
+    
+    current_object=  self  
+    self.class.find(:all, :conditions => ['lower(name) = :name and is_deleted = :is_deleted ' + 
+                   ' and service_component_id = :service_component_id', 
+                {:name => current_object.name.downcase, :is_deleted => false ,
+                  :service_component_id => current_object.service_component_id }]).count != 0  
+  end
+  
+  def duplicate_entries
+    current_object=  self  
+    return self.class.find(:all, :conditions => ['lower(name) = :name and is_deleted = :is_deleted  '+ 
+                   ' and service_component_id = :service_component_id', 
+                {:name => current_object.name.downcase, :is_deleted => false ,
+                  :service_component_id => current_object.service_component_id  }]) 
+  end
+  
   has_many :items, :through => :usage_options
   has_many :usage_options 
   

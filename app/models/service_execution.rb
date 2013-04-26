@@ -132,6 +132,7 @@ class ServiceExecution < ActiveRecord::Base
       
       if not self.employee_id.nil? and ( is_employee_id_changed or is_service_component_id_changed )
         
+        puts "YEAH baby, the sales_order_entry is confirmed" if  self.sales_order_entry.is_confirmed? 
         self.create_commission if self.sales_order_entry.is_confirmed? 
         
         if is_service_component_id_changed

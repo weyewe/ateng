@@ -1,7 +1,11 @@
 module UniqueNonDeleted
+  # you must create 2 methods: 
+  # 1. has_duplicate_entry?
+  # 2. duplicate_entries 
   
   
-  def unique_non_deleted_name
+  def unique_non_deleted_name( *attr_data ) 
+   
     current_object = self
      
     msg = 'Sudah ada dengan data sama'
