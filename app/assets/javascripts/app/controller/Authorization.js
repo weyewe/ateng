@@ -464,7 +464,7 @@ Ext.define("AM.controller.Authorization", {
 			this.inventoryFolder,
 			// this.factoryFolder, 
 			this.salesFolder, 
-			this.paymentFolder 
+			// this.paymentFolder 
 		];
 		
 		console.log("The length of folderList: " + folderList.length );
