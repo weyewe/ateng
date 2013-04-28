@@ -1,0 +1,7 @@
+Processing by Api::UsageOptionsController#index as JSON
+  Parameters: {"_dc"=>"1367150987514", "material_usage_id"=>"3", "page"=>"1", "start"=>"0", "limit"=>"10", "sort"=>"[{\"property\":\"id\",\"direction\":\"DESC\"}]", "auth_token"=>"qN2Zp1adwbq8xM8UM9QH"}
+
+
+
+	Processing by Api::UsageOptionsController#index as JSON
+	  Parameters: {"_dc"=>"1367151033145", "material_usage_id"=>"9", "page"=>"1", "start"=>"0", "limit"=>"10", "sort"=>"[{\"property\":\"id\",\"direction\":\"DESC\"}]", "auth_token"=>"qN2Zp1adwbq8xM8UM9QH"}

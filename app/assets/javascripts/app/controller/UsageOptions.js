@@ -19,7 +19,7 @@ Ext.define('AM.controller.UsageOptions', {
 		},
 		{
 			ref : 'parentList',
-			selector : 'servicelist'
+			selector : 'materialusagelist'
 		},
 		{
 			ref: 'materialUsageList',

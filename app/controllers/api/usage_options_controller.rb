@@ -2,7 +2,7 @@ class Api::UsageOptionsController < Api::BaseApiController
   
   def index
     @parent = MaterialUsage.find_by_id params[:material_usage_id]
-    @objects = @parent.active_usage_options.joins(:material_usage, :item, :service_component).
+    @objects = @parent.active_usage_options.joins(:material_usage, :item ).
                 page(params[:page]).
                 per(params[:limit]).order("id DESC")
     @total = @parent.active_usage_options.count
