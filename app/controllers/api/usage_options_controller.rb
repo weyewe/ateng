@@ -64,7 +64,10 @@ class Api::UsageOptionsController < Api::BaseApiController
     if  ( not @object.persisted? )
       render :json => { :success => true, :total => @parent.active_usage_options.count }  
     else
-      render :json => { :success => false, :total =>@parent.active_usage_options.count }  
+      render :json => { :success => false, :total =>@parent.active_usage_options.count,
+        :message => {
+          :errors => extjs_error_format( @object.errors )  
+        } }  
     end
   end
   

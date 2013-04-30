@@ -84,9 +84,11 @@ class UsageOption < ActiveRecord::Base
   
   def delete_object 
     if self.material_usage.service.has_sales?    
+      puts "the shite has sales\n"*10
       self.errors.add(:generic_errors, "Sudah ada penjualan dengan service dari pilihan ini")
       return self 
     else
+      puts "gonna destroy \n"*10
       self.destroy 
     end
   end

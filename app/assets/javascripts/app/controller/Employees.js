@@ -105,27 +105,27 @@ Ext.define('AM.controller.Employees', {
 					
 					// recommendation from this guy: http://vadimpopa.com/reload-a-single-record-and-refresh-its-extjs-grid-row/
 					// reload a single grid 
-					me.getEmployeeModel().load(  recordId , {
-					    scope: list,
-					    failure: function(record, operation) {
-					        //do something if the load failed
-					    },
-					    success: function(record, operation) {
-					        var store = list.getStore(),
-					            recToUpdate = store.getById( recordId );
-					
-					         recToUpdate.set(record.getData());
-					
-					     // Do commit if you need: if the data from
-					     // the server differs from last commit data
-					         recordToUpdate.commit();
-					
-					         list.getView().refreshNode(store.indexOfId( recordId ));
-					    },
-					    callback: function(record, operation) {
-					        //do something whether the load succeeded or failed
-					    }
-					});
+					// me.getEmployeeModel().load(  recordId , {
+					//     scope: list,
+					//     failure: function(record, operation) {
+					//         //do something if the load failed
+					//     },
+					//     success: function(record, operation) {
+					//         var store = list.getStore(),
+					//             recToUpdate = store.getById( recordId );
+					// 
+					//          recToUpdate.set(record.getData());
+					// 
+					//      // Do commit if you need: if the data from
+					//      // the server differs from last commit data
+					//          recordToUpdate.commit();
+					// 
+					//          list.getView().refreshNode(store.indexOfId( recordId ));
+					//     },
+					//     callback: function(record, operation) {
+					//         //do something whether the load succeeded or failed
+					//     }
+					// });
 					
 					
 					win.close();
